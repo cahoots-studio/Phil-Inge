@@ -1,0 +1,190 @@
+{
+  "name": "Gallery",
+  "description": "Image layouts from Figma: Project / [TEMPLATE]. Sizes are flex fill weights taken from the 1600px comp, so every layout scales proportionally.",
+  "props": {
+    "Layout": [
+      "Full",
+      "Pair Portrait",
+      "Pair Landscape",
+      "Mosaic Six",
+      "Mosaic Three"
+    ]
+  },
+  "variants": [
+    {
+      "props": {
+        "Layout": "Full"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "16/9"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Layout": "Pair Portrait"
+      },
+      "tree": {
+        "type": "component",
+        "direction": "row",
+        "gap": "$gap-media",
+        "mobile": "stack",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "width": "fill",
+            "aspect": "4/5"
+          },
+          {
+            "type": "media",
+            "slot": 1,
+            "width": "fill",
+            "height": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Layout": "Pair Landscape"
+      },
+      "tree": {
+        "type": "component",
+        "direction": "row",
+        "gap": "$gap-media",
+        "mobile": "stack",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "width": "fill",
+            "aspect": "3/2"
+          },
+          {
+            "type": "media",
+            "slot": 1,
+            "width": "fill",
+            "height": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Layout": "Mosaic Six"
+      },
+      "tree": {
+        "type": "component",
+        "direction": "row",
+        "gap": "$gap-media",
+        "aspect": "1600/952",
+        "mobile": "stack",
+        "children": [
+          {
+            "type": "column",
+            "width": "fill",
+            "gap": "$gap-media",
+            "children": [
+              {
+                "type": "media",
+                "slot": 0,
+                "height": "fill 540"
+              },
+              {
+                "type": "container",
+                "direction": "row",
+                "gap": "$gap-media",
+                "height": "fill 380",
+                "children": [
+                  {
+                    "type": "media",
+                    "slot": 1,
+                    "width": "fill"
+                  },
+                  {
+                    "type": "media",
+                    "slot": 2,
+                    "width": "fill"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "column",
+            "width": "fill",
+            "gap": "$gap-media",
+            "children": [
+              {
+                "type": "container",
+                "direction": "row",
+                "gap": "$gap-media",
+                "height": "fill 380",
+                "children": [
+                  {
+                    "type": "media",
+                    "slot": 3,
+                    "width": "fill 404"
+                  },
+                  {
+                    "type": "media",
+                    "slot": 4,
+                    "width": "fill 348"
+                  }
+                ]
+              },
+              {
+                "type": "media",
+                "slot": 5,
+                "height": "fill 540"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Layout": "Mosaic Three"
+      },
+      "tree": {
+        "type": "component",
+        "gap": "$gap-media",
+        "aspect": "1600/952",
+        "mobile": "stack",
+        "children": [
+          {
+            "type": "container",
+            "direction": "row",
+            "gap": "$gap-media",
+            "height": "fill 380",
+            "children": [
+              {
+                "type": "media",
+                "slot": 0,
+                "width": "fill 1220"
+              },
+              {
+                "type": "media",
+                "slot": 1,
+                "width": "fill 348"
+              }
+            ]
+          },
+          {
+            "type": "media",
+            "slot": 2,
+            "height": "fill 540"
+          }
+        ]
+      }
+    }
+  ]
+}

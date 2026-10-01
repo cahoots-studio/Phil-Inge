@@ -1,0 +1,34 @@
+{
+  "home": {
+    "title": "Phil Inge — Helps people build brands",
+    "description": "Phil Inge helps people build brands.",
+    "headline": "Phil Inge helps people build brands."
+  },
+  "projectsPage": {
+    "title": "Projects — Phil Inge",
+    "description": "Selected brand and digital design projects by Phil Inge.",
+    "heading": "Projects",
+    "tags": [
+      {
+        "label": "Digital Design",
+        "color": "orange"
+      },
+      {
+        "label": "Branding",
+        "color": "yellow"
+      },
+      {
+        "label": "3D",
+        "color": "violet"
+      }
+    ],
+    "intro": "This is a bit of small text it is our baseline text. Good for long form text, paragraphs etc. This is the smallest compliant text size"
+  },
+  "projectOrder": [
+    "huck-black-box",
+    "ante",
+    "waypoint",
+    "glca",
+    "tiny-hawk"
+  ]
+}

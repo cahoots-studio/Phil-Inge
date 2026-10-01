@@ -38,6 +38,7 @@
   --pad-section-global: 64px;
   --pad-section-large: 160px;
   --pad-section-small: 56px;
+  --pad-section-gallery: var(--pad-section-global); /* halves on mobile */
   --pad-block-medium: 64px;
   --gap-media: 32px;
 
@@ -410,9 +411,6 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   height: 100%;
   object-fit: cover;
 }
-.media--16x9 { aspect-ratio: 16 / 9; }
-.media--4x5  { aspect-ratio: 4 / 5; }
-.media--3x2  { aspect-ratio: 3 / 2; }
 
 .project-summary {
   display: flex;
@@ -496,38 +494,28 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   gap: var(--gap-large);
 }
 
-.gallery {
-  padding: var(--pad-section-global);
-}
-
-/* Two images side by side; the second stretches to the first one's height */
-.gallery__pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--gap-media);
-}
-
-/* Mosaics: fixed 1600×952 proportions, rows split 540 / 380 */
-.mosaic {
-  display: grid;
-  gap: var(--gap-media);
-  aspect-ratio: 1600 / 952;
-}
-.mosaic--six   { grid-template-columns: 1fr 1fr; }
-.mosaic--three { grid-template-columns: 1fr; }
-
-.mosaic__col,
-.mosaic__row {
-  display: grid;
-  gap: var(--gap-media);
+/* ==========================================================================
+   Layout tree (rendered from /content by tools/render.js)
+   Section > Container / Column > Component > Block. Each wrapper is a flex
+   column by default; direction, gap, padding and fill/hug/fixed sizing come
+   from the content as inline styles.
+   ========================================================================== */
+.sc-section,
+.sc-container,
+.sc-column,
+.sc-component {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   min-height: 0;
 }
-.mosaic__col--wide-top    { grid-template-rows: 540fr 380fr; }
-.mosaic__col--wide-bottom { grid-template-rows: 380fr 540fr; }
-.mosaic__row--halves { grid-template-columns: 1fr 1fr; }
-/* Narrow image is 348px at the 1600px design width; fr keeps the ratio when scaled */
-.mosaic--six   .mosaic__row--split { grid-template-columns: 404fr 348fr; }
-.mosaic--three .mosaic__row--split { grid-template-columns: 1220fr 348fr; }
+.sc-section { position: relative; }
+
+/* Images never size their frame: the frame comes from aspect / fill */
+.sc-media img {
+  position: absolute;
+  inset: 0;
+}
 
 /* ==========================================================================
    Footer
@@ -659,17 +647,15 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   .project-summary { align-items: flex-start; margin-left: 0; }
   .project-row__media,
   .project-hero__media { aspect-ratio: 16 / 9; }
-  .gallery { padding-block: calc(var(--pad-section-global) / 2); }
+  :root { --pad-section-gallery: calc(var(--pad-section-global) / 2); }
 
-  /* Mosaics and pairs collapse to a simple stack of 4:3 images */
-  .mosaic { aspect-ratio: auto; }
-  .gallery__pair,
-  .mosaic--six,
-  .mosaic__col--wide-top,
-  .mosaic__col--wide-bottom { grid-template-columns: 1fr; grid-template-rows: none; }
-  .mosaic .mosaic__row--split { grid-template-columns: 1fr 1fr; }
-  .gallery__pair .media,
-  .mosaic .media { aspect-ratio: 4 / 3; }
+  /* mobile: "stack" — the wrapper becomes one column of 4:3 images;
+     rows nested inside it stay side by side at equal widths */
+  [data-m="stack"] { flex-direction: column !important; aspect-ratio: auto !important; }
+  [data-m="stack"] * { flex-basis: auto !important; }
+  [data-m="stack"] > * { flex: none !important; width: auto !important; height: auto !important; align-self: stretch !important; }
+  [data-m="stack"] [data-dir="row"] > * { flex: 1 1 0 !important; }
+  [data-m="stack"] .sc-media { aspect-ratio: 4 / 3 !important; height: auto !important; }
 
   .site-footer__upper { flex-direction: column; }
   .site-footer__nav { gap: var(--gap-large); }

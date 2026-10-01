@@ -1,0 +1,227 @@
+/* Edit mode only — loaded by tools/edit.js, never published. */
+
+/* ---------------------------------------------------------- text */
+[data-edit-text] {
+  border-radius: 4px;
+  outline: 1px dashed transparent;
+  outline-offset: 4px;
+  cursor: text;
+  transition: outline-color 0.15s ease;
+}
+[data-edit-text]:hover { outline-color: var(--color-electric-violet); }
+[data-edit-text]:focus {
+  outline: 2px solid var(--color-electric-violet);
+  background: rgb(139 55 254 / 0.06);
+}
+
+/* ---------------------------------------------------------- image slots */
+[data-edit-media] { position: relative; }
+
+.sc-slot__button {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: rgb(36 32 26 / 0);
+  color: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sc-slot__label {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: #24201a;
+  font: 600 14px/1 var(--font-text);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.15);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+[data-edit-media]:hover .sc-slot__button,
+.sc-slot__button:focus-visible { background: rgb(36 32 26 / 0.35); }
+[data-edit-media]:hover .sc-slot__label,
+.sc-slot__button:focus-visible .sc-slot__label { opacity: 1; transform: none; }
+
+/* Empty slots: always show the prompt over a dashed frame */
+[data-edit-media][data-empty] img { opacity: 0.35; filter: grayscale(1); }
+[data-edit-media][data-empty] .sc-slot__button {
+  outline: 2px dashed var(--color-electric-violet);
+  outline-offset: -8px;
+}
+[data-edit-media][data-empty] .sc-slot__label { opacity: 1; transform: none; }
+
+[data-edit-media].is-dragover .sc-slot__button {
+  background: rgb(139 55 254 / 0.35);
+  outline: 3px solid var(--color-electric-violet);
+  outline-offset: -8px;
+}
+[data-edit-media].is-uploading .sc-slot__button { cursor: progress; background: rgb(36 32 26 / 0.5); }
+[data-edit-media].is-uploading .sc-slot__label { opacity: 1; transform: none; }
+[data-edit-media].is-uploading .sc-slot__label::after { content: '…'; }
+
+/* Hover zoom on tiles fights with the overlay */
+[data-edit-media] img { transform: none !important; }
+
+/* ---------------------------------------------------------- edit bar */
+.sc-editbar {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 18px;
+  border-radius: 999px;
+  background: #24201a;
+  color: #f6f5f1;
+  font: 400 14px/1.2 var(--font-text);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
+  transform: translateX(-50%);
+}
+.sc-editbar__label { font-weight: 600; white-space: nowrap; }
+.sc-editbar__label::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--color-electric-violet);
+  vertical-align: 1px;
+}
+.sc-editbar__status {
+  min-width: 0;
+  overflow: hidden;
+  color: #c9c3b8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sc-editbar__status[data-kind="busy"] { color: #f6f5f1; }
+.sc-editbar__status[data-kind="error"] { color: #ff9b8a; }
+.sc-editbar__publish {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-electric-violet);
+  color: #fff;
+  font: 600 14px/1 var(--font-text);
+  cursor: pointer;
+}
+.sc-editbar__publish:disabled { opacity: 0.5; cursor: progress; }
+.sc-editbar__publish:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---------------------------------------------------------- section controls */
+section[data-edit-section] { outline: 1px dashed transparent; outline-offset: -1px; }
+section[data-edit-section]:hover,
+section[data-edit-section]:focus-within { outline-color: rgb(139 55 254 / 0.5); }
+
+.sc-sectionbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 999px;
+  background: #24201a;
+  color: #f6f5f1;
+  font: 400 13px/1 var(--font-text);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+section[data-edit-section]:hover > .sc-sectionbar,
+.sc-sectionbar:focus-within { opacity: 1; pointer-events: auto; }
+
+.sc-sectionbar__name { font-weight: 600; margin-right: 4px; }
+.sc-sectionbar__select {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #645c4e;
+  border-radius: 999px;
+  background: #24201a;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.sc-sectionbar__btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.sc-sectionbar__btn svg { width: 16px; height: 16px; fill: currentColor; }
+.sc-sectionbar__btn:hover:not(:disabled) { background: #3a342b; }
+.sc-sectionbar__btn:disabled { opacity: 0.3; cursor: default; }
+.sc-sectionbar__btn:focus-visible,
+.sc-sectionbar__select:focus-visible { outline: 2px solid var(--color-electric-violet); outline-offset: 1px; }
+
+/* ---------------------------------------------------------- add section */
+.sc-adder {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  height: 0;
+}
+.sc-adder__btn {
+  transform: translateY(-50%);
+  padding: 6px 14px;
+  border: 1px dashed var(--color-electric-violet);
+  border-radius: 999px;
+  background: var(--scheme-bg);
+  color: var(--color-electric-violet);
+  font: 600 13px/1 var(--font-text);
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+.sc-adder__btn:hover,
+.sc-adder__btn:focus-visible,
+.sc-adder__btn[aria-expanded="true"] { opacity: 1; }
+.sc-adder__menu {
+  position: absolute;
+  top: 20px;
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #24201a;
+  color: #f6f5f1;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.25);
+}
+.sc-adder__menu[hidden] { display: none; }
+.sc-adder__group { display: flex; flex-direction: column; gap: 4px; }
+.sc-adder__title { margin-bottom: 6px; font: 600 12px/1 var(--font-text); text-transform: uppercase; letter-spacing: 0.06em; color: #c9c3b8; }
+.sc-adder__option {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: 400 14px/1 var(--font-text);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sc-adder__option:hover,
+.sc-adder__option:focus-visible { background: #3a342b; outline: none; }

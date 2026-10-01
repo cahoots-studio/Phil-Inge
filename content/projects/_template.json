@@ -1,0 +1,214 @@
+{
+  "title": "Project title",
+  "summary": "A short description of the project, what it was like to work on it and why the client needed it in the first place.",
+  "tags": [
+    {
+      "label": "Digital Design",
+      "color": "orange"
+    },
+    {
+      "label": "3D",
+      "color": "violet"
+    }
+  ],
+  "cover": {
+    "src": null,
+    "alt": ""
+  },
+  "home": {
+    "showTags": false
+  },
+  "sections": [
+    {
+      "type": "section",
+      "padding": {
+        "x": "$pad-section-global",
+        "y": "$pad-section-gallery"
+      },
+      "children": [
+        {
+          "type": "container",
+          "width": "fill",
+          "max": "$container-max",
+          "children": [
+            {
+              "type": "instance",
+              "component": "Gallery",
+              "variant": {
+                "Layout": "Full"
+              },
+              "content": {
+                "media": [
+                  {
+                    "src": null,
+                    "alt": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "padding": {
+        "x": "$pad-section-global",
+        "y": "$pad-section-gallery"
+      },
+      "children": [
+        {
+          "type": "container",
+          "width": "fill",
+          "max": "$container-max",
+          "children": [
+            {
+              "type": "instance",
+              "component": "Gallery",
+              "variant": {
+                "Layout": "Pair Portrait"
+              },
+              "content": {
+                "media": [
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "padding": {
+        "x": "$pad-section-global",
+        "y": "$pad-section-gallery"
+      },
+      "children": [
+        {
+          "type": "container",
+          "width": "fill",
+          "max": "$container-max",
+          "children": [
+            {
+              "type": "instance",
+              "component": "Gallery",
+              "variant": {
+                "Layout": "Pair Landscape"
+              },
+              "content": {
+                "media": [
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "padding": {
+        "x": "$pad-section-global",
+        "y": "$pad-section-gallery"
+      },
+      "children": [
+        {
+          "type": "container",
+          "width": "fill",
+          "max": "$container-max",
+          "children": [
+            {
+              "type": "instance",
+              "component": "Gallery",
+              "variant": {
+                "Layout": "Mosaic Six"
+              },
+              "content": {
+                "media": [
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "padding": {
+        "x": "$pad-section-global",
+        "y": "$pad-section-gallery"
+      },
+      "children": [
+        {
+          "type": "container",
+          "width": "fill",
+          "max": "$container-max",
+          "children": [
+            {
+              "type": "instance",
+              "component": "Gallery",
+              "variant": {
+                "Layout": "Mosaic Three"
+              },
+              "content": {
+                "media": [
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  },
+                  {
+                    "src": null,
+                    "alt": ""
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

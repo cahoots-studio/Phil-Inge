@@ -1,0 +1,341 @@
+/* ==========================================================================
+   Tokens — mirrored from the Supercomponent Figma variables
+   ========================================================================== */
+:root {
+  /* Key colors */
+  --color-flush-orange: #ff8400;
+  --color-electric-violet: #8b37fe;
+  --color-neutral-light: #dad5cc;
+
+  /* Scheme 1 — Primary */
+  --scheme-bg: #ece9e3;
+  --scheme-text: #24201a;
+  --scheme-border: #a1998a;
+
+  /* Typefaces */
+  --font-headline: "Dela Gothic One", sans-serif;
+  --font-text: "Inter", sans-serif;
+
+  /* Type sizes */
+  --size-headline-huge: 116px;
+  --size-headline-small: 32px;
+  --size-text-small: 18px;
+  --size-text-tiny: 14px;
+
+  /* Spacing */
+  --gap-tiny: 4px;
+  --gap-small: 16px;
+  --gap-medium: 24px;
+  --gap-large: 40px;
+  --gap-huge: 80px;
+  --pad-control-tiny: 4px;
+  --pad-control-small: 8px;
+  --pad-control-huge: 32px;
+  --pad-section-global: 64px;
+  --pad-section-large: 160px;
+  --pad-block-medium: 64px;
+
+  /* Radii */
+  --radius-small: 4px;
+  --corners-media: 16px;
+  --corners-tag: 4px;
+
+  --container-max: 1600px;
+}
+
+/* Scheme 3 — Contrast: everything inside resolves its roles through here */
+[data-sc-scheme="scheme-3"] {
+  --scheme-bg: #24201a;
+  --scheme-text: #f6f5f1;
+  --scheme-border: #645c4e;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--scheme-bg);
+  color: var(--scheme-text);
+  font-family: var(--font-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; margin: 0; padding: 0; }
+h1, h2, p { margin: 0; font-weight: inherit; }
+address { font-style: normal; }
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-electric-violet);
+  outline-offset: 4px;
+  border-radius: var(--radius-small);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+.site-header {
+  padding: var(--pad-control-huge) var(--pad-section-global);
+}
+
+.site-logo { display: block; width: fit-content; }
+.site-logo img { width: 322.458px; height: auto; }
+
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+.hero {
+  padding: var(--pad-section-large) var(--pad-section-global);
+}
+
+.hero__headline {
+  max-width: 1294px;
+  font-family: var(--font-headline);
+  font-size: var(--size-headline-huge);
+  line-height: 128px;
+  letter-spacing: -0.07em; /* -8.12px @ 116px */
+  word-spacing: 0.15em;    /* matches the double spaces in the Figma copy */
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Portfolio grid
+   ========================================================================== */
+.portfolio {
+  padding: var(--pad-section-global);
+}
+
+.portfolio__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap-large);
+}
+
+.project-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-medium);
+}
+
+.project-tile__media {
+  aspect-ratio: 320 / 180;
+  overflow: hidden;
+  border: 1px solid var(--scheme-border);
+  border-radius: var(--corners-media);
+}
+
+.project-tile__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.project-tile__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-small);
+  min-height: 52px;
+}
+
+.project-tile--tagged .project-tile__meta { flex-wrap: wrap; }
+
+.project-tile__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-family: var(--font-headline);
+  font-size: var(--size-headline-small);
+  line-height: normal;
+  text-transform: uppercase;
+}
+
+/* Untagged tiles keep the title on the left */
+.project-tile:not(.project-tile--tagged) .project-tile__title { margin-left: 0; }
+
+.project-tile__arrow {
+  width: 26px;
+  height: 21.4744px;
+  margin-top: 6px;
+  background: url("../assets/arrow.svg") center / contain no-repeat;
+  transition: transform 0.2s ease;
+}
+
+/* Active state (shown on GLCA in the comp) */
+.project-tile--tagged .project-tile__arrow,
+.project-tile:hover .project-tile__arrow,
+.project-tile:focus-visible .project-tile__arrow {
+  background-image: url("../assets/arrow-active.svg");
+}
+
+.project-tile:hover .project-tile__arrow { transform: translateX(4px); }
+.project-tile:hover .project-tile__media img { transform: scale(1.02); }
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-small);
+}
+
+.tag {
+  padding: var(--pad-control-tiny) var(--pad-control-small);
+  border: 0.5px solid currentColor;
+  border-radius: var(--corners-tag);
+  font-size: var(--size-text-tiny);
+  line-height: normal;
+}
+.tag--orange { border-color: var(--color-flush-orange); }
+.tag--violet { border-color: var(--color-electric-violet); }
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.site-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: var(--pad-block-medium) var(--pad-section-global);
+  background: var(--scheme-bg);
+  color: var(--scheme-text);
+  font-size: var(--size-text-small);
+  line-height: normal;
+}
+
+.site-footer a {
+  padding-inline: var(--gap-tiny);
+  border-radius: var(--radius-small);
+}
+.site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.site-footer__upper {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap-large);
+}
+
+.site-footer__address {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tiny);
+}
+
+.site-footer__nav { display: flex; gap: 64px; }
+
+.site-footer__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-small);
+}
+.site-footer__col ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-footer__heading { font-weight: 600; }
+
+/* Supercomponent logo: mark (rotated 90°) + wordmark, scaled to full width */
+.sc-logo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 641.928 / 87.015;
+}
+.sc-logo__mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 13.56%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-logo__mark img {
+  width: auto;
+  height: 100%;
+  transform: rotate(90deg);
+}
+.sc-logo__wordmark {
+  position: absolute;
+  left: 14.8%;
+  top: 32.49%;
+  width: 85.2%;
+  height: 35.03%;
+}
+
+.site-footer__rule {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--scheme-border);
+}
+
+.site-footer__lower {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-small) 32px;
+  flex-wrap: wrap;
+}
+
+.site-footer__credits {
+  display: flex;
+  gap: 32px;
+  font-size: var(--size-text-tiny);
+}
+
+.site-footer__subnav { display: flex; gap: 32px; flex-wrap: wrap; }
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 1200px) {
+  :root {
+    --size-headline-huge: 88px;
+    --pad-section-large: 120px;
+  }
+  .hero__headline { line-height: 1.1; }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --size-headline-huge: 64px;
+    --size-headline-small: 26px;
+    --pad-section-global: 32px;
+    --pad-section-large: 88px;
+  }
+  .portfolio__grid { grid-template-columns: 1fr; }
+  .site-footer__upper { flex-direction: column; }
+  .site-footer__nav { gap: var(--gap-large); }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --size-headline-huge: 44px;
+    --size-headline-small: 22px;
+    --pad-section-global: 16px;
+    --pad-section-large: 64px;
+    --pad-control-huge: 20px;
+  }
+  .site-logo img { width: 220px; }
+  .site-footer__nav { flex-direction: column; gap: var(--gap-medium); }
+  .site-footer__credits { flex-direction: column; gap: var(--gap-tiny); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

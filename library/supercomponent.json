@@ -1,0 +1,124 @@
+{
+  "name": "Supercomponent",
+  "description": "Figma: Patterns → Supercomponent. Tag, media, headline, text and an action row; Card adds the foreground surface.",
+  "props": {
+    "Type": [
+      "Default",
+      "Card"
+    ]
+  },
+  "variants": [
+    {
+      "props": {
+        "Type": "Default"
+      },
+      "tree": {
+        "type": "component",
+        "gap": "$gap-large",
+        "width": "fill",
+        "maxWidth": "745px",
+        "children": [
+          {
+            "type": "tag",
+            "color": "Default",
+            "field": "tag",
+            "default": "TAG"
+          },
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "16/9"
+          },
+          {
+            "type": "headline",
+            "size": "Large",
+            "field": "headline",
+            "default": "Large Headline"
+          },
+          {
+            "type": "text",
+            "size": "Small",
+            "field": "text",
+            "default": "This is a bit of small text it is our baseline text. Good for long form text, paragraphs etc. This is the smallest compliant text size"
+          },
+          {
+            "type": "actions",
+            "children": [
+              {
+                "type": "button",
+                "priority": "Primary",
+                "field": "primary",
+                "default": "Button Text"
+              },
+              {
+                "type": "button",
+                "priority": "Secondary",
+                "field": "secondary",
+                "default": "Button Text"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Type": "Card"
+      },
+      "tree": {
+        "type": "component",
+        "gap": "$gap-large",
+        "width": "fill",
+        "maxWidth": "857px",
+        "background": "$scheme-fg",
+        "padding": {
+          "x": "$pad-block-small",
+          "y": "$gap-large"
+        },
+        "radius": "$radius-large",
+        "children": [
+          {
+            "type": "tag",
+            "color": "Default",
+            "field": "tag",
+            "default": "TAG"
+          },
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "16/9"
+          },
+          {
+            "type": "headline",
+            "size": "Large",
+            "field": "headline",
+            "default": "Large Headline"
+          },
+          {
+            "type": "text",
+            "size": "Small",
+            "field": "text",
+            "default": "This is a bit of small text it is our baseline text. Good for long form text, paragraphs etc. This is the smallest compliant text size"
+          },
+          {
+            "type": "actions",
+            "children": [
+              {
+                "type": "button",
+                "priority": "Primary",
+                "field": "primary",
+                "default": "Button Text"
+              },
+              {
+                "type": "button",
+                "priority": "Secondary",
+                "field": "secondary",
+                "default": "Button Text"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

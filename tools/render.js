@@ -343,7 +343,8 @@ ${rows}
 // Section > Container/Column > Component > Block. Every wrapper is a flexbox:
 //   direction  row | column (default)
 //   width/height  "fill" | "fill <weight>" | "hug" | fixed length ("$token" or "348px")
-//   gap, padding ({x,y} or one value), align, justify, wrap, aspect, max, background
+//   gap, padding ({x,y} or one value), align, justify, wrap, aspect, background, radius
+//   max (centred max-width, for page containers), maxWidth (plain max-width)
 //   mobile: "stack" → becomes a single column under 900px
 // "$name" resolves to var(--name), so every value can point at a design variable.
 
@@ -372,6 +373,8 @@ function nodeStyle(n, parentDir) {
   if (n.aspect) st['aspect-ratio'] = n.aspect.replace('/', ' / ');
   if (n.background) st.background = tok(n.background);
   if (n.max) Object.assign(st, { width: '100%', 'max-width': tok(n.max), 'margin-inline': 'auto' });
+  if (n.maxWidth) st['max-width'] = tok(n.maxWidth);
+  if (n.radius) st['border-radius'] = tok(n.radius);
   if (parentDir) {
     Object.assign(st, sizing(n.width, 'width', parentDir === 'row'));
     Object.assign(st, sizing(n.height, 'height', parentDir === 'column'));
@@ -382,6 +385,33 @@ function nodeStyle(n, parentDir) {
 
 function nodeAttrs(n) {
   return (n.direction === 'row' ? ' data-dir="row"' : '') + (n.mobile === 'stack' ? ' data-m="stack"' : '');
+}
+
+// ---------------------------------------------------------------- blocks
+// Blocks come from Figma: Style Guide & Component Library → Primitives.
+// Inside a library component a block has a `field`; its value comes from the
+// instance's content (falling back to the block's `default`). Placed directly
+// in a page tree (wireframing), a block carries its own `text`.
+
+const TAG_COLOR = { Default: 'orange', Purple: 'violet', Yellow: 'yellow' };
+const SIZES = {
+  headline: ['Hero', 'Huge', 'Large', 'Medium', 'Small', 'Tiny'],
+  text: ['Huge', 'Large', 'Medium', 'Small', 'Tiny'],
+};
+const slug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+// → { value, target } for a text-bearing block
+function blockText(n, env) {
+  if (n.field && env.instance) {
+    const v = env.instance.content[n.field];
+    return { value: typeof v === 'string' ? v : (n.default || ''), target: `${env.instance.path}.content.${n.field}` };
+  }
+  return { value: n.text ?? n.default ?? '', target: `${env.path}.text` };
+}
+
+function blockHref(n, env) {
+  const fromContent = n.field && env.instance && env.instance.content[`${n.field}Href`];
+  return fromContent || n.href || '#';
 }
 
 // env: { c, doc, lib, path (page-tree key path), instance: { content, path } }
@@ -400,9 +430,66 @@ function renderNode(n, env, parentDir, depth) {
       return renderNode(tree, { ...env, instance: { content: n.content || {}, path: env.path } }, parentDir, depth);
     }
     case 'media': {
-      const m = env.instance && env.instance.content.media ? env.instance.content.media[n.slot] || null : null;
-      const target = `${env.instance.path}.content.media.${n.slot}`;
+      // Ratio comes from `aspect` ("16/9"); "Free" = no aspect, sized by fill/fixed
+      let m, target;
+      if (env.instance) {
+        m = env.instance.content.media ? env.instance.content.media[n.slot] || null : null;
+        target = `${env.instance.path}.content.media.${n.slot}`;
+      } else {
+        m = n.src !== undefined ? { src: n.src, alt: n.alt } : null;
+        target = env.path;
+      }
       return `${pad}<div class="media sc-media"${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}>${img(env.c, m)}</div>`;
+    }
+    case 'headline': {
+      const { value, target } = blockText(n, env);
+      const level = /^h[1-6]$/.test(n.level) ? n.level : 'h2';
+      const size = SIZES.headline.includes(n.size) ? n.size : 'Large';
+      return `${pad}<${level} class="sc-headline sc-headline--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</${level}>`;
+    }
+    case 'text': {
+      const { value, target } = blockText(n, env);
+      const size = SIZES.text.includes(n.size) ? n.size : 'Small';
+      return `${pad}<p class="sc-text sc-text--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</p>`;
+    }
+    case 'label': {
+      const { value, target } = blockText(n, env);
+      return `${pad}<span class="sc-label"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+    }
+    case 'tag': {
+      const { value, target } = blockText(n, env);
+      return `${pad}<span class="tag tag--${TAG_COLOR[n.color] || 'orange'} sc-tag"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+    }
+    case 'button': {
+      const { value, target } = blockText(n, env);
+      const priority = ['Primary', 'Secondary', 'Link'].includes(n.priority) ? n.priority : 'Primary';
+      const cls = `sc-button sc-button--${slug(priority)}${n.round ? ' sc-button--round' : ''}`;
+      const label = `<span${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+      return n.submit
+        ? `${pad}<button class="${cls}" type="submit"${nodeStyle(n, parentDir)}>${label}</button>`
+        : `${pad}<a class="${cls}" href="${esc(blockHref(n, env))}"${nodeStyle(n, parentDir)}>${label}</a>`;
+    }
+    case 'field': {
+      // Figma: Input — Field Type Basic | Email | Long Form
+      const type = ['Basic', 'Email', 'Long Form'].includes(n.fieldType) ? n.fieldType : 'Basic';
+      const { value: label, target } = blockText({ ...n, default: n.label || 'Label' }, env);
+      const name = esc(n.name || slug(label) || 'field');
+      const ph = esc(n.placeholder || (type === 'Email' ? 'email@yourdomain.com' : 'Placeholder Text'));
+      const control = type === 'Long Form'
+        ? `<textarea class="sc-field__input" name="${name}" placeholder="${ph}" rows="4"></textarea>`
+        : `<input class="sc-field__input" type="${type === 'Email' ? 'email' : 'text'}" name="${name}" placeholder="${ph}"${type === 'Email' ? ' autocomplete="email"' : ''}>`;
+      return `${pad}<label class="sc-field sc-field--${slug(type)}"${nodeStyle(n, parentDir)}>
+${pad}  <span class="sc-field__label"${env.c.t(env.doc, target)}>${esc(label)}</span>
+${pad}  ${control}
+${pad}</label>`;
+    }
+    case 'actions': {
+      // Figma: Action Row — Action Type Buttons | Email Capture
+      const isForm = n.actionType === 'Email Capture';
+      const tag = isForm ? 'form' : 'div';
+      return `${pad}<${tag} class="sc-actions sc-actions--${isForm ? 'email-capture' : 'buttons'}"${nodeAttrs(n)}${nodeStyle(n, parentDir)}>
+${kids(n.children)}
+${pad}</${tag}>`;
     }
     case 'section':
     case 'container':
@@ -425,6 +512,37 @@ function renderSections(c, doc, sections) {
     // Tag the outer <section> so edit mode can attach section controls
     return c.edit ? html.replace('<section ', `<section data-edit-section="${i}" `) : html;
   }).join('\n\n');
+}
+
+// Every library component variant, for checking against Figma (edit server: /__styleguide)
+function renderStyleguide(opts = {}) {
+  const { projects } = loadSite();
+  const c = ctx({ ...opts, edit: false }, '');
+  const lib = loadLibrary();
+  const blocks = [
+    ...SIZES.headline.map(size => ({ type: 'headline', size, text: `${size} Headline` })),
+    ...SIZES.text.map(size => ({ type: 'text', size, text: `${size} text — this is a bit of ${size.toLowerCase()} text. It should be one to two sentences.` })),
+    { type: 'label', text: 'Label' },
+    { type: 'container', direction: 'row', gap: '$gap-small', children: Object.keys(TAG_COLOR).map(color => ({ type: 'tag', color, text: `${color} tag` })) },
+    { type: 'container', direction: 'row', wrap: true, gap: '$gap-medium', align: 'center', children: ['Primary', 'Secondary', 'Link'].map(priority => ({ type: 'button', priority, text: priority === 'Link' ? 'Link Text' : 'Button Text' })) },
+    { type: 'actions', children: [{ type: 'button', priority: 'Primary', text: 'Button Text' }, { type: 'button', priority: 'Secondary', text: 'Button Text' }] },
+    { type: 'actions', actionType: 'Email Capture', align: 'center', children: [{ type: 'field', fieldType: 'Email', label: 'Email' }, { type: 'button', priority: 'Primary', round: true, submit: true, text: 'Submit' }] },
+    ...['Basic', 'Email', 'Long Form'].map(fieldType => ({ type: 'field', fieldType, label: `${fieldType} field` })),
+  ];
+  const env = { c, doc: 'styleguide', lib, path: 'styleguide' };
+  const section = (title, body) => `    <section class="sc-section" style="padding: var(--pad-section-global)">
+      <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; gap: var(--gap-large)">
+        <p class="sc-label">${esc(title)}</p>
+${body}
+      </div>
+    </section>`;
+  const blockHtml = blocks.map((b, i) => renderNode(b, { ...env, path: `b.${i}` }, 'column', 4)).join('\n');
+  const comps = Object.values(lib).map(def => def.variants.map(v =>
+    section(`${def.name} — ${Object.entries(v.props).map(([k, val]) => `${k}: ${val}`).join(', ')}`,
+      renderNode({ type: 'instance', component: def.name, variant: v.props, content: {} }, { ...env, path: 'x' }, 'column', 4))
+  ).join('\n')).join('\n');
+  return page({ title: 'Styleguide — Phil Inge', description: '' }, c, projects, null,
+    section('Blocks (Figma: Primitives)', blockHtml) + '\n' + comps);
 }
 
 // Data the editor needs to build section controls (edit mode only)
@@ -473,5 +591,5 @@ ${sections}`);
 module.exports = {
   ROOT, CONTENT, MARKER,
   loadSite, loadLibrary, findVariant, slotCount, newSection, findInstance,
-  renderHome, renderProjects, renderProject,
+  renderHome, renderProjects, renderProject, renderStyleguide,
 };

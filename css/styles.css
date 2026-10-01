@@ -8,44 +8,65 @@
   --color-neutral-light: #dad5cc;
   --color-yellow: #e5ff00;
 
+  /* Transparency */
+  --transparency-neutral-darkest-10: #24201a1a;
+  --transparency-neutral-lightest-15: #f6f5f126;
+
   /* Scheme 1 — Primary */
   --scheme-bg: #ece9e3;
   --scheme-fg: #f6f5f1;
   --scheme-text: #24201a;
   --scheme-border: #a1998a;
+  --scheme-accent: #ff8400;
+  --scheme-button-surface: #24201a;
+  --scheme-button-text: #f6f5f1;
+  --scheme-button-border: #24201a;
 
   /* Typefaces */
   --font-headline: "Dela Gothic One", sans-serif;
   --font-text: "Inter", sans-serif;
 
   /* Type sizes */
+  --size-headline-hero: 168px;
   --size-headline-huge: 116px;
   --size-headline-large: 80px;
   --size-headline-medium: 52px;
   --size-headline-small: 32px;
-  --size-text-small: 18px;
+  --size-headline-tiny: 22px;
+  --size-text-huge: 52px;
+  --size-text-large: 38px;
+  --size-text-medium: 24px;
+  --size-text-small: 16px;
   --size-text-tiny: 14px;
 
   /* Spacing */
-  --gap-tiny: 4px;
+  --gap-tiny: 8px;
   --gap-small: 16px;
   --gap-medium: 24px;
   --gap-large: 40px;
   --gap-huge: 80px;
   --pad-control-tiny: 4px;
   --pad-control-small: 8px;
+  --pad-control-medium: 16px;
+  --pad-control-large: 24px;
   --pad-control-huge: 32px;
   --pad-section-global: 64px;
   --pad-section-large: 160px;
   --pad-section-small: 56px;
   --pad-section-gallery: var(--pad-section-global); /* halves on mobile */
+  --pad-block-small: 56px;
   --pad-block-medium: 64px;
   --gap-media: 32px;
 
   /* Radii */
   --radius-small: 4px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
+  --radius-round: 9999px;
   --corners-media: 16px;
   --corners-tag: 4px;
+  --corners-button: 16px;
+  --corners-input: 4px;
 
   --container-max: 1600px;
 }
@@ -518,6 +539,123 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 }
 
 /* ==========================================================================
+   Blocks (Figma: Style Guide & Component Library → Primitives)
+   Text blocks fill their wrapper; tags, buttons and action rows hug.
+   ========================================================================== */
+.sc-tag,
+.sc-button,
+.sc-actions { align-self: flex-start; }
+
+/* Headline — Headline Size: Hero | Huge | Large | Medium | Small | Tiny */
+.sc-headline {
+  font-family: var(--font-headline);
+  line-height: normal;
+  overflow-wrap: break-word;
+}
+.sc-headline--hero   { font-size: var(--size-headline-hero);   letter-spacing: -0.07em; } /* -11.76px @ 168 */
+.sc-headline--huge   { font-size: var(--size-headline-huge);   letter-spacing: -0.07em; } /* -8.12px @ 116 */
+.sc-headline--large  { font-size: var(--size-headline-large);  letter-spacing: -0.05em; line-height: 1; }
+.sc-headline--medium { font-size: var(--size-headline-medium); letter-spacing: -0.06em; text-transform: uppercase; }
+.sc-headline--small  { font-size: var(--size-headline-small);  text-transform: uppercase; }
+.sc-headline--tiny   { font-size: var(--size-headline-tiny); }
+
+/* Text — Text Size: Huge | Large | Medium | Small | Tiny */
+.sc-text { line-height: normal; }
+.sc-text--huge   { font-size: var(--size-text-huge); }
+.sc-text--large  { font-size: var(--size-text-large); }
+.sc-text--medium { font-size: var(--size-text-medium); }
+.sc-text--small  { font-size: var(--size-text-small); }
+.sc-text--tiny   { font-size: var(--size-text-tiny); }
+
+.sc-label { font-size: var(--size-text-tiny); line-height: normal; }
+
+/* Button — Button Priority: Primary | Secondary | Link (State: Default | Hover)
+   min-height 44px is the touch target from the component notes, on purpose
+   taller than the Figma frame. */
+.sc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--pad-control-medium) var(--pad-control-huge);
+  border: 1px solid transparent;
+  border-radius: var(--corners-button);
+  font: 400 var(--size-text-small) / normal var(--font-text);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.sc-button--primary {
+  background:
+    linear-gradient(var(--transparency-neutral-lightest-15), var(--transparency-neutral-lightest-15)),
+    var(--scheme-button-surface);
+  color: var(--scheme-button-text);
+}
+.sc-button--primary:hover { background: var(--scheme-button-surface); }
+.sc-button--secondary {
+  background: var(--transparency-neutral-darkest-10);
+  border-color: var(--scheme-button-border);
+  color: var(--scheme-text);
+}
+.sc-button--secondary:hover { background: transparent; }
+.sc-button--link {
+  min-height: 0;
+  padding: var(--pad-control-tiny);
+  border: 0;
+  border-radius: 0;
+  color: var(--scheme-text);
+}
+/* Hover widens to 4/8 padding in Figma; the negative margin keeps it from shifting */
+.sc-button--link:hover {
+  padding-inline: var(--gap-tiny);
+  margin-inline: calc(var(--pad-control-tiny) - var(--gap-tiny));
+  background:
+    linear-gradient(var(--transparency-neutral-lightest-15), var(--transparency-neutral-lightest-15)),
+    var(--scheme-accent);
+}
+.sc-button--round { border-radius: var(--radius-round); }
+
+/* Action Row — Action Type: Buttons | Email Capture */
+.sc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--gap-medium);
+}
+.sc-actions--email-capture { align-items: center; flex-wrap: nowrap; max-width: 100%; }
+
+/* Input — Field Type: Basic | Email | Long Form */
+.sc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tiny);
+  width: 100%;
+  max-width: 644px;
+  padding: var(--pad-control-small) var(--pad-control-medium);
+  border-radius: var(--corners-input);
+}
+.sc-field--email { padding-block: var(--pad-control-tiny); }
+.sc-actions .sc-field { flex: 0 1 auto; width: 644px; min-width: 0; padding-inline: 0; }
+.sc-field__label {
+  padding-left: var(--pad-control-medium);
+  font-size: var(--size-text-tiny);
+  line-height: normal;
+}
+.sc-field__input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--pad-control-medium) var(--pad-control-large);
+  border: 1px solid #000;
+  border-radius: var(--radius-medium);
+  background: #fff;
+  color: var(--scheme-text);
+  font: 400 var(--size-text-small) / normal var(--font-text);
+}
+.sc-field__input::placeholder { color: var(--scheme-text); opacity: 1; }
+textarea.sc-field__input { min-height: 128px; resize: vertical; }
+
+/* ==========================================================================
    Footer
    ========================================================================== */
 .site-footer {
@@ -622,6 +760,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
    ========================================================================== */
 @media (max-width: 1200px) {
   :root {
+    --size-headline-hero: 120px;
     --size-headline-huge: 88px;
     --pad-section-large: 120px;
   }
@@ -630,6 +769,9 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 
 @media (max-width: 900px) {
   :root {
+    --size-headline-hero: 80px;
+    --size-text-huge: 40px;
+    --size-text-large: 30px;
     --size-headline-huge: 64px;
     --size-headline-small: 26px;
     --pad-section-global: 32px;
@@ -663,6 +805,9 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 
 @media (max-width: 560px) {
   :root {
+    --size-headline-hero: 56px;
+    --size-text-huge: 32px;
+    --size-text-large: 26px;
     --size-headline-huge: 44px;
     --size-headline-large: 44px;
     --size-headline-medium: 30px;

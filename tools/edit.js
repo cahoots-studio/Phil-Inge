@@ -10,7 +10,7 @@ const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
 const { ROOT, CONTENT, loadLibrary, findVariant, slotCount, newSection, findInstance,
-  renderHome, renderProjects, renderProject } = require('./render');
+  renderHome, renderProjects, renderProject, renderStyleguide } = require('./render');
 const { build } = require('./build');
 
 const PORT = Number(process.env.PORT) || 4000;
@@ -75,6 +75,16 @@ function writeJSON(file, data) {
   fs.renameSync(tmp, file);
 }
 
+// Text fields a component variant exposes (blocks with a `field`, except media)
+function componentFields(tree) {
+  const out = new Set();
+  (function walk(n) {
+    if (n.field && n.type !== 'media') out.add(n.field);
+    (n.children || []).forEach(walk);
+  })(tree);
+  return out;
+}
+
 function walkKeys(data, keys) {
   let node = data;
   for (const k of keys) {
@@ -114,10 +124,22 @@ async function saveText(req) {
   const { target, value } = JSON.parse((await readBody(req, 1024 * 1024)).toString('utf8'));
   const { file, keys } = parseTarget(target);
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const [parent, key] = resolveParent(data, keys);
-  // Fixed layouts: only existing text fields can be changed.
-  if (typeof parent[key] !== 'string') throw new Error('Not a text field');
-  parent[key] = String(value).replace(/\s+/g, ' ').trim();
+  const clean = String(value).replace(/\s+/g, ' ').trim();
+  let parent, key;
+  const ci = keys.lastIndexOf('content');
+  if (ci > 0 && keys.length === ci + 2) {
+    // <instance>.content.<field>: the field must be a text block in the component
+    const instance = walkKeys(data, keys.slice(0, ci));
+    const def = instance && instance.type === 'instance' && loadLibrary()[instance.component];
+    if (!def || !componentFields(findVariant(def, instance.variant).tree).has(keys[ci + 1])) throw new Error('Not a text field');
+    instance.content = instance.content || {};
+    parent = instance.content; key = keys[ci + 1];
+  } else {
+    // Anything else: only existing text values can be changed
+    [parent, key] = resolveParent(data, keys);
+    if (typeof parent[key] !== 'string') throw new Error('Not a text field');
+  }
+  parent[key] = clean;
   writeJSON(file, data);
   build();
   return { value: parent[key] };
@@ -261,6 +283,7 @@ function renderRoute(pathname) {
   if (pathname === '/' || pathname === '/index.html') return renderHome({ edit: true });
   if (pathname === '/projects/' || pathname === '/projects/index.html') return renderProjects({ edit: true });
   if (pathname === '/projects') return 'redirect';
+  if (pathname === '/__styleguide') return renderStyleguide().replace(/(href|src)="(?!https?:|\/|#)/g, '$1="/');
   const m = /^\/projects\/([a-z0-9-]+)\.html$/.exec(pathname);
   if (m) return renderProject(m[1], { edit: true });
   return undefined;

@@ -75,4 +75,28 @@ Any value starting with `$` is a design variable: `"$gap-media"` → `var(--gap-
 A component instance in a page stores only `component`, `variant` and
 `content` (e.g. `content.media[]`); the layout comes from `library/`.
 
+## Blocks
+
+From Figma → Style Guide & Component Library → Primitives:
+
+| Block | Options |
+| --- | --- |
+| `headline` | `size`: Hero, Huge, Large, Medium, Small, Tiny · `level`: h1–h6 (default h2) |
+| `text` | `size`: Huge, Large, Medium, Small, Tiny |
+| `label` | — |
+| `tag` | `color`: Default, Purple, Yellow |
+| `button` | `priority`: Primary, Secondary, Link · `round`, `submit`, `href` |
+| `actions` | Action Row — `actionType`: Buttons (default) or Email Capture |
+| `field` | Input — `fieldType`: Basic, Email, Long Form · `label`, `placeholder`, `name` |
+| `media` | `aspect` (e.g. `16/9`, `4/5`, `21/9`; omit for Free) |
+
+Inside a library component a block names a `field` (plus a `default`), and the
+text comes from the instance's `content.<field>` — that's what edit mode
+changes when you click it. A button's link is `content.<field>Href`. Placed
+directly in a page tree, a block carries its own `text`.
+
+Library components: **Gallery** (Layout ×5) and **Supercomponent** (Type:
+Default, Card). With the editor running, http://localhost:4000/__styleguide
+shows every block and every component variant.
+
 Requires Node 18+ and macOS (`sips` does the image resizing).

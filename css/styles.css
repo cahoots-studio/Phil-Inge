@@ -93,6 +93,14 @@ address { font-style: normal; }
    (Layout=Desktop → Desktop Expanded). The expanded panel overlays the page
    so the content below doesn't jump.
    ========================================================================== */
+/* Scheme 1 — Primary (restated so a component can opt back into it) */
+[data-sc-scheme="scheme-1"] {
+  --scheme-bg: #ece9e3;
+  --scheme-text: #24201a;
+  --scheme-border: #a1998a;
+}
+
+/* Scheme 2 — Subtle */
 [data-sc-scheme="scheme-2"] {
   --scheme-bg: #dad5cc;
   --scheme-text: #24201a;

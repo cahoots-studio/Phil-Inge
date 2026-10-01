@@ -268,7 +268,7 @@
       if (!e.target.closest('.sc-adder')) document.querySelectorAll('.sc-adder__menu').forEach(m => { m.hidden = true; });
     });
 
-    const hero = document.querySelector('.project-hero');
+    const hero = document.querySelector('section[data-top]');
     if (hero) hero.after(adder(0));
     sections.forEach((el, i) => el.after(adder(i + 1)));
   }

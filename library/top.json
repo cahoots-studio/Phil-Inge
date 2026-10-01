@@ -1,0 +1,150 @@
+{
+  "name": "Top",
+  "description": "Figma: Patterns → Top. The first section of a page. Hero = home, Subpage = section landing pages, Portfolio = project pages.",
+  "section": {
+    "type": "section",
+    "padding": {
+      "x": "$pad-section-global",
+      "y": "0"
+    }
+  },
+  "props": {
+    "Type": [
+      "Hero",
+      "Subpage",
+      "Portfolio"
+    ]
+  },
+  "variants": [
+    {
+      "props": {
+        "Type": "Hero"
+      },
+      "tree": {
+        "type": "component",
+        "padding": {
+          "top": "$pad-section-large",
+          "bottom": "$pad-section-large"
+        },
+        "children": [
+          {
+            "type": "headline",
+            "size": "Huge",
+            "level": "h1",
+            "field": "headline",
+            "default": "Headline",
+            "case": "upper",
+            "leading": "1.1",
+            "wordSpacing": "0.15em",
+            "maxWidth": "1294px"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Type": "Subpage"
+      },
+      "tree": {
+        "type": "component",
+        "padding": {
+          "top": "$pad-section-large",
+          "bottom": "$pad-section-small"
+        },
+        "children": [
+          {
+            "type": "container",
+            "direction": "row",
+            "justify": "space-between",
+            "align": "flex-end",
+            "gap": "$gap-large",
+            "mobile": "stack",
+            "children": [
+              {
+                "type": "headline",
+                "size": "Large",
+                "level": "h1",
+                "field": "headline",
+                "default": "Headline",
+                "case": "upper"
+              },
+              {
+                "type": "column",
+                "gap": "$gap-medium",
+                "maxWidth": "$width-column-medium",
+                "children": [
+                  {
+                    "type": "tags",
+                    "field": "tags"
+                  },
+                  {
+                    "type": "text",
+                    "size": "Small",
+                    "field": "text",
+                    "default": "A short description."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Type": "Portfolio"
+      },
+      "tree": {
+        "type": "component",
+        "gap": "$gap-large",
+        "padding": {
+          "top": "$pad-section-large",
+          "bottom": "$pad-section-small"
+        },
+        "children": [
+          {
+            "type": "container",
+            "direction": "row",
+            "justify": "space-between",
+            "align": "flex-end",
+            "gap": "$gap-large",
+            "mobile": "stack",
+            "children": [
+              {
+                "type": "headline",
+                "size": "Medium",
+                "level": "h1",
+                "field": "headline",
+                "default": "Project title",
+                "leading": "0.85"
+              },
+              {
+                "type": "column",
+                "gap": "$gap-medium",
+                "maxWidth": "$width-column-medium",
+                "children": [
+                  {
+                    "type": "tags",
+                    "field": "tags"
+                  },
+                  {
+                    "type": "text",
+                    "size": "Small",
+                    "field": "text",
+                    "default": "A short description."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "1600/437.625",
+            "mobileAspect": "16/9"
+          }
+        ]
+      }
+    }
+  ]
+}

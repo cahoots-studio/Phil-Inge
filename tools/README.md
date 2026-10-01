@@ -84,7 +84,8 @@ From Figma → Style Guide & Component Library → Primitives:
 | `headline` | `size`: Hero, Huge, Large, Medium, Small, Tiny · `level`: h1–h6 (default h2) |
 | `text` | `size`: Huge, Large, Medium, Small, Tiny |
 | `label` | — |
-| `tag` | `color`: Default, Purple, Yellow |
+| `tag` | `color`: Orange, Purple, Yellow, Pink, Green |
+| `tags` | a list of `{ label, color }` |
 | `button` | `priority`: Primary, Secondary, Link · `round`, `submit`, `href` |
 | `actions` | Action Row — `actionType`: Buttons (default) or Email Capture |
 | `field` | Input — `fieldType`: Basic, Email, Long Form · `label`, `placeholder`, `name` |
@@ -95,8 +96,16 @@ text comes from the instance's `content.<field>` — that's what edit mode
 changes when you click it. A button's link is `content.<field>Href`. Placed
 directly in a page tree, a block carries its own `text`.
 
-Library components: **Gallery** (Layout ×5) and **Supercomponent** (Type:
-Default, Card). With the editor running, http://localhost:4000/__styleguide
+Library components: **Top** (Type: Hero, Subpage, Portfolio — the page
+header), **Gallery** (Layout ×5) and **Supercomponent** (Type: Default, Card).
+
+**Bindings.** An instance can take a field from the page's own data instead of
+its `content`, like Webflow binding a component to CMS fields. Every page
+renders a Top instance this way: Home binds `headline → home.headline`;
+Projects binds headline, tags and text to `projectsPage.*`; project pages bind
+`headline → title`, `tags → tags`, `text → summary` and `media.0 → cover`. So
+editing a project's header edits the project itself, and the change shows up
+on its Home tile, in the Projects list and in the nav. With the editor running, http://localhost:4000/__styleguide
 shows every block and every component variant.
 
 Requires Node 18+ and macOS (`sips` does the image resizing).

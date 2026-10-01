@@ -46,7 +46,8 @@ function slotCount(tree) {
 
 function newSection(component, variant) {
   const { section, container } = loadPresets();
-  return { ...section, children: [{ ...container, children: [
+  const def = loadLibrary()[component];
+  return { ...((def && def.section) || section), children: [{ ...container, children: [
     { type: 'instance', component, variant, content: { media: [] } },
   ] }] };
 }
@@ -287,11 +288,7 @@ function renderHome(opts = {}) {
           </li>`;
   }).join('\n');
 
-  return page(h, c, projects, null, `    <section class="hero">
-      <div class="container">
-        <h1 class="hero__headline"${c.t('site', 'home.headline')}>${esc(h.headline)}</h1>
-      </div>
-    </section>
+  return page(h, c, projects, null, `${renderTop(c, 'site', site, 'Hero', { headline: 'home.headline' })}
 
     <section class="portfolio" aria-label="Selected work">
       <div class="container">
@@ -320,15 +317,8 @@ function renderProjects(opts = {}) {
           </li>`;
   }).join('\n');
 
-  return page(pg, c, projects, null, `    <section class="page-intro">
-      <div class="container page-intro__row">
-        <h1 class="page-intro__title"${c.t('site', 'projectsPage.heading')}>${esc(pg.heading)}</h1>
-        <div class="project-summary">
-          ${tags(c, 'site', pg.tags, 'projectsPage.tags')}
-          <p${c.t('site', 'projectsPage.intro')}>${esc(pg.intro)}</p>
-        </div>
-      </div>
-    </section>
+  return page(pg, c, projects, null, `${renderTop(c, 'site', site, 'Subpage',
+    { headline: 'projectsPage.heading', tags: 'projectsPage.tags', text: 'projectsPage.intro' })}
 
     <section class="project-list" aria-label="All projects">
       <div class="container">
@@ -345,7 +335,8 @@ ${rows}
 //   width/height  "fill" | "fill <weight>" | "hug" | fixed length ("$token" or "348px")
 //   gap, padding ({x,y} or one value), align, justify, wrap, aspect, background, radius
 //   max (centred max-width, for page containers), maxWidth (plain max-width)
-//   mobile: "stack" → becomes a single column under 900px
+//   mobile: "stack" → becomes a single column under 900px; mobileAspect: ratio under 900px
+//   padding can also be { top, bottom, x }
 // "$name" resolves to var(--name), so every value can point at a design variable.
 
 const tok = v => typeof v === 'string' && v.startsWith('$') ? `var(--${v.slice(1)})` : v;
@@ -363,9 +354,10 @@ function nodeStyle(n, parentDir) {
   if (n.direction === 'row') st['flex-direction'] = 'row';
   if (n.gap) st.gap = tok(n.gap);
   if (n.padding) {
-    st.padding = typeof n.padding === 'object'
-      ? `${tok(n.padding.y || 0)} ${tok(n.padding.x || 0)}`
-      : tok(n.padding);
+    const p = n.padding;
+    st.padding = typeof p === 'object'
+      ? `${tok(p.top ?? p.y ?? 0)} ${tok(p.x ?? 0)} ${tok(p.bottom ?? p.y ?? 0)}`
+      : tok(p);
   }
   if (n.align) st['align-items'] = n.align;
   if (n.justify) st['justify-content'] = n.justify;
@@ -375,6 +367,11 @@ function nodeStyle(n, parentDir) {
   if (n.max) Object.assign(st, { width: '100%', 'max-width': tok(n.max), 'margin-inline': 'auto' });
   if (n.maxWidth) st['max-width'] = tok(n.maxWidth);
   if (n.radius) st['border-radius'] = tok(n.radius);
+  if (n.mobileAspect) st['--m-aspect'] = n.mobileAspect.replace('/', ' / ');
+  // Text-block overrides (Figma instances often tweak these)
+  if (n.leading) st['line-height'] = tok(n.leading);
+  if (n.case === 'upper') st['text-transform'] = 'uppercase';
+  if (n.wordSpacing) st['word-spacing'] = tok(n.wordSpacing);
   if (parentDir) {
     Object.assign(st, sizing(n.width, 'width', parentDir === 'row'));
     Object.assign(st, sizing(n.height, 'height', parentDir === 'column'));
@@ -384,7 +381,8 @@ function nodeStyle(n, parentDir) {
 }
 
 function nodeAttrs(n) {
-  return (n.direction === 'row' ? ' data-dir="row"' : '') + (n.mobile === 'stack' ? ' data-m="stack"' : '');
+  return (n.direction === 'row' ? ' data-dir="row"' : '') + (n.mobile === 'stack' ? ' data-m="stack"' : '')
+    + (n.mobileAspect ? ' data-m-aspect' : '');
 }
 
 // ---------------------------------------------------------------- blocks
@@ -393,7 +391,18 @@ function nodeAttrs(n) {
 // instance's content (falling back to the block's `default`). Placed directly
 // in a page tree (wireframing), a block carries its own `text`.
 
-const TAG_COLOR = { Default: 'orange', Purple: 'violet', Yellow: 'yellow' };
+// Figma Tag colors → CSS modifier (content may also store the modifier itself)
+const TAG_COLOR = { Orange: 'orange', Purple: 'violet', Yellow: 'yellow', Pink: 'pink', Green: 'green' };
+const TAG_CLASSES = new Set(Object.values(TAG_COLOR));
+const tagClass = color => TAG_COLOR[color] || (TAG_CLASSES.has(color) ? color : 'orange');
+
+// Bindings: an instance can map its fields to paths in the page's own data
+// (like Webflow binding a component to CMS fields), e.g. { headline: 'title' }.
+const getPath = (obj, p) => p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+function bound(env, key) {
+  const b = env.instance && env.instance.bind;
+  return b && b[key] ? { path: b[key], value: getPath(env.data, b[key]) } : null;
+}
 const SIZES = {
   headline: ['Hero', 'Huge', 'Large', 'Medium', 'Small', 'Tiny'],
   text: ['Huge', 'Large', 'Medium', 'Small', 'Tiny'],
@@ -402,6 +411,8 @@ const slug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 // → { value, target } for a text-bearing block
 function blockText(n, env) {
+  const b = n.field && bound(env, n.field);
+  if (b) return { value: typeof b.value === 'string' ? b.value : (n.default || ''), target: b.path };
   if (n.field && env.instance) {
     const v = env.instance.content[n.field];
     return { value: typeof v === 'string' ? v : (n.default || ''), target: `${env.instance.path}.content.${n.field}` };
@@ -427,19 +438,23 @@ function renderNode(n, env, parentDir, depth) {
       const def = env.lib[n.component];
       if (!def) throw new Error(`Unknown component "${n.component}" in ${env.doc}`);
       const { tree } = findVariant(def, n.variant);
-      return renderNode(tree, { ...env, instance: { content: n.content || {}, path: env.path } }, parentDir, depth);
+      return renderNode(tree, { ...env, instance: { content: n.content || {}, path: env.path, bind: n.bind } }, parentDir, depth);
     }
     case 'media': {
       // Ratio comes from `aspect` ("16/9"); "Free" = no aspect, sized by fill/fixed
       let m, target;
-      if (env.instance) {
+      const b = bound(env, `media.${n.slot}`);
+      if (b) {
+        m = b.value || null;
+        target = b.path;
+      } else if (env.instance) {
         m = env.instance.content.media ? env.instance.content.media[n.slot] || null : null;
         target = `${env.instance.path}.content.media.${n.slot}`;
       } else {
         m = n.src !== undefined ? { src: n.src, alt: n.alt } : null;
         target = env.path;
       }
-      return `${pad}<div class="media sc-media"${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}>${img(env.c, m)}</div>`;
+      return `${pad}<div class="media sc-media"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}>${img(env.c, m, { lazy: !b })}</div>`;
     }
     case 'headline': {
       const { value, target } = blockText(n, env);
@@ -458,7 +473,18 @@ function renderNode(n, env, parentDir, depth) {
     }
     case 'tag': {
       const { value, target } = blockText(n, env);
-      return `${pad}<span class="tag tag--${TAG_COLOR[n.color] || 'orange'} sc-tag"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+      return `${pad}<span class="tag tag--${tagClass(n.color)} sc-tag"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+    }
+    case 'tags': {
+      // A list of tags: [{ label, color }]
+      let list, base;
+      const b = n.field && bound(env, n.field);
+      if (b) { list = b.value; base = b.path; }
+      else if (n.field && env.instance) { list = env.instance.content[n.field]; base = `${env.instance.path}.content.${n.field}`; }
+      else { list = n.tags; base = `${env.path}.tags`; }
+      return `${pad}<ul class="tags sc-tags"${nodeStyle(n, parentDir)}>
+${(list || []).map((t, i) => `${pad}  <li class="tag tag--${tagClass(t.color)}"${env.c.t(env.doc, `${base}.${i}.label`)}>${esc(t.label)}</li>`).join('\n')}
+${pad}</ul>`;
     }
     case 'button': {
       const { value, target } = blockText(n, env);
@@ -505,6 +531,17 @@ ${pad}</${tag}>`;
   }
 }
 
+// The page header: a Top instance bound to the page's own data
+function renderTop(c, doc, data, type, bind) {
+  const lib = loadLibrary();
+  const { section, container } = loadPresets();
+  const tree = { ...(lib.Top.section || section), children: [{ ...container, children: [
+    { type: 'instance', component: 'Top', variant: { Type: type }, bind },
+  ] }] };
+  const html = renderNode(tree, { c, doc, lib, data, path: 'top' }, null, 2);
+  return html.replace('<section ', '<section data-top ');
+}
+
 function renderSections(c, doc, sections) {
   const lib = loadLibrary();
   return (sections || []).map((sec, i) => {
@@ -523,7 +560,7 @@ function renderStyleguide(opts = {}) {
     ...SIZES.headline.map(size => ({ type: 'headline', size, text: `${size} Headline` })),
     ...SIZES.text.map(size => ({ type: 'text', size, text: `${size} text — this is a bit of ${size.toLowerCase()} text. It should be one to two sentences.` })),
     { type: 'label', text: 'Label' },
-    { type: 'container', direction: 'row', gap: '$gap-small', children: Object.keys(TAG_COLOR).map(color => ({ type: 'tag', color, text: `${color} tag` })) },
+    { type: 'container', direction: 'row', gap: '$gap-small', children: Object.keys(TAG_COLOR).map(color => ({ type: 'tag', color, text: color })) },
     { type: 'container', direction: 'row', wrap: true, gap: '$gap-medium', align: 'center', children: ['Primary', 'Secondary', 'Link'].map(priority => ({ type: 'button', priority, text: priority === 'Link' ? 'Link Text' : 'Button Text' })) },
     { type: 'actions', children: [{ type: 'button', priority: 'Primary', text: 'Button Text' }, { type: 'button', priority: 'Secondary', text: 'Button Text' }] },
     { type: 'actions', actionType: 'Email Capture', align: 'center', children: [{ type: 'field', fieldType: 'Email', label: 'Email' }, { type: 'button', priority: 'Primary', round: true, submit: true, text: 'Submit' }] },
@@ -572,18 +609,8 @@ function renderProject(slug, opts = {}) {
     ? `\n  <script type="application/json" id="sc-edit-data">${JSON.stringify(editData(doc, pr.sections)).replace(/</g, '\\u003c')}</script>`
     : '');
 
-  return page(meta, c, projects, slug, `    <section class="project-hero">
-      <div class="container">
-        <div class="project-hero__row">
-          <h1 class="project-hero__title"${c.t(doc, 'title')}>${esc(pr.title)}</h1>
-          <div class="project-summary">
-            ${tags(c, doc, pr.tags)}
-            <p${c.t(doc, 'summary')}>${esc(pr.summary)}</p>
-          </div>
-        </div>
-        <div class="media project-hero__media"${c.m(doc, 'cover', pr.cover)}>${img(c, pr.cover, { lazy: false })}</div>
-      </div>
-    </section>
+  return page(meta, c, projects, slug, `${renderTop(c, doc, pr, 'Portfolio',
+    { headline: 'title', tags: 'tags', text: 'summary', 'media.0': 'cover' })}
 
 ${sections}`);
 }

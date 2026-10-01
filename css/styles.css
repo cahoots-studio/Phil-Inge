@@ -7,6 +7,8 @@
   --color-electric-violet: #8b37fe;
   --color-neutral-light: #dad5cc;
   --color-yellow: #e5ff00;
+  --color-pink: #ff00bb;
+  --color-green: #00ff66;
 
   /* Transparency */
   --transparency-neutral-darkest-10: #24201a1a;
@@ -69,6 +71,7 @@
   --corners-input: 4px;
 
   --container-max: 1600px;
+  --width-column-medium: 560px;
 }
 
 /* Scheme 3 — Contrast: everything inside resolves its roles through here */
@@ -306,23 +309,6 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .nav-locked { overflow: hidden; }
 
 /* ==========================================================================
-   Hero
-   ========================================================================== */
-.hero {
-  padding: var(--pad-section-large) var(--pad-section-global);
-}
-
-.hero__headline {
-  max-width: 1294px;
-  font-family: var(--font-headline);
-  font-size: var(--size-headline-huge);
-  line-height: 128px;
-  letter-spacing: -0.07em; /* -8.12px @ 116px */
-  word-spacing: 0.15em;    /* matches the double spaces in the Figma copy */
-  text-transform: uppercase;
-}
-
-/* ==========================================================================
    Portfolio grid
    ========================================================================== */
 .portfolio {
@@ -450,6 +436,8 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .tag--orange { border-color: var(--color-flush-orange); }
 .tag--violet { border-color: var(--color-electric-violet); }
 .tag--yellow { border-color: var(--color-yellow); }
+.tag--pink   { border-color: var(--color-pink); }
+.tag--green  { border-color: var(--color-green); }
 
 /* ==========================================================================
    Shared: media frame + project summary (tags + short description)
@@ -483,30 +471,9 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   line-height: normal;
 }
 
-/* Headline + summary on one row, bottom-aligned */
-.page-intro__row,
-.project-hero__row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--gap-large);
-}
-
 /* ==========================================================================
    Projects list page
    ========================================================================== */
-.page-intro {
-  padding: var(--pad-section-large) var(--pad-section-global) var(--pad-section-small);
-}
-
-.page-intro__title {
-  font-family: var(--font-headline);
-  font-size: var(--size-headline-large);
-  line-height: 1;
-  letter-spacing: -0.05em; /* -4px @ 80px */
-  text-transform: uppercase;
-}
-
 .project-list {
   padding: var(--pad-section-global);
 }
@@ -523,8 +490,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   gap: var(--gap-large);
 }
 
-.project-row__title,
-.project-hero__title {
+.project-row__title {
   font-family: var(--font-headline);
   font-size: var(--size-headline-medium);
   line-height: 0.85; /* 44px row @ 52px, as in the comp */
@@ -532,24 +498,11 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   text-transform: uppercase;
 }
 
-.project-row__media,
-.project-hero__media { aspect-ratio: 1600 / 437.625; }
+.project-row__media { aspect-ratio: 1600 / 437.625; }
 
 .project-row__media img { transition: transform 0.4s ease; }
 .project-row:hover .project-row__media img { transform: scale(1.02); }
 .project-row:hover .project-row__title { color: var(--color-electric-violet); }
-
-/* ==========================================================================
-   Project detail template
-   ========================================================================== */
-.project-hero {
-  padding: var(--pad-section-large) var(--pad-section-global) var(--pad-section-small);
-}
-.project-hero .container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-large);
-}
 
 /* ==========================================================================
    Layout tree (rendered from /content by tools/render.js)
@@ -800,7 +753,6 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
     --size-headline-huge: 88px;
     --pad-section-large: 120px;
   }
-  .hero__headline { line-height: 1.1; }
 }
 
 @media (max-width: 900px) {
@@ -820,11 +772,9 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
     --size-headline-medium: 36px;
     --gap-media: 16px;
   }
-  .page-intro__row,
-  .project-hero__row { flex-direction: column; align-items: flex-start; }
   .project-summary { align-items: flex-start; margin-left: 0; }
-  .project-row__media,
-  .project-hero__media { aspect-ratio: 16 / 9; }
+  .project-row__media { aspect-ratio: 16 / 9; }
+  [data-m-aspect] { aspect-ratio: var(--m-aspect) !important; }
   :root { --pad-section-gallery: calc(var(--pad-section-global) / 2); }
 
   /* mobile: "stack" — the wrapper becomes one column of 4:3 images;

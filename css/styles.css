@@ -352,50 +352,86 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+}
+
+/* Figma: Project Tile (Card), Default → Hover — Smart Animate, ease-out 0.4s.
+   Hover: the title + arrow slide to the right edge, the tags fade in on the
+   left, the arrow turns pink. The title sits in the right-hand column and is
+   shifted left by default, so tags never run under it. */
+.project-tile {
+  --tile-ease: 0.4s cubic-bezier(0, 0, 0.58, 1); /* Figma EASE_OUT */
 }
 
 .project-tile__meta {
-  display: flex;
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--gap-small);
+  column-gap: var(--gap-small);
   min-height: 52px;
 }
 
-.project-tile--tagged .project-tile__meta { flex-wrap: wrap; }
+.project-tile__meta .tags {
+  grid-column: 1;
+  grid-row: 1;
+  /* One row only: tags that don't fit next to the title wrap out of view
+     whole, instead of being cut off mid-tag */
+  flex-wrap: wrap;
+  max-height: calc(var(--size-text-tiny) * 1.25 + var(--pad-control-tiny) * 2 + 1px);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--tile-ease);
+}
+
+.project-tile__meta .tags { container: tile-tags / inline-size; }
+.project-tile__meta .tag {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* No room for even a shortened tag: hide the row rather than show a sliver */
+@container tile-tags (max-width: 72px) {
+  .project-tile__meta .tag { visibility: hidden; }
+}
 
 .project-tile__title {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
   font-family: var(--font-headline);
   font-size: var(--size-headline-small);
   line-height: normal;
   text-transform: uppercase;
+  white-space: nowrap;
+  /* 100% = the title's own width, 100cqw = the row's width */
+  transform: translateX(calc(100% - 100cqw));
+  transition: transform var(--tile-ease);
 }
 
-/* Untagged tiles keep the title on the left */
-.project-tile:not(.project-tile--tagged) .project-tile__title { margin-left: 0; }
-
 .project-tile__arrow {
+  position: relative;
+  flex: none;
   width: 26px;
   height: 21.4744px;
   margin-top: 6px;
-  background: url("../assets/arrow.svg") center / contain no-repeat;
-  transition: transform 0.2s ease;
 }
-
-/* Active state (shown on GLCA in the comp) */
-.project-tile--tagged .project-tile__arrow,
-.project-tile:hover .project-tile__arrow,
-.project-tile:focus-visible .project-tile__arrow {
-  background-image: url("../assets/arrow-active.svg");
+.project-tile__arrow img {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--tile-ease);
 }
+.project-tile__arrow-hover { opacity: 0; }
 
-.project-tile:hover .project-tile__arrow { transform: translateX(4px); }
-.project-tile:hover .project-tile__media img { transform: scale(1.02); }
+.project-tile:is(:hover, :focus-visible) .project-tile__meta .tags { opacity: 1; }
+.project-tile:is(:hover, :focus-visible) .project-tile__title { transform: none; }
+.project-tile:is(:hover, :focus-visible) .project-tile__arrow-hover { opacity: 1; }
+
+/* Edit mode: keep tags reachable for editing */
+.project-tile:focus-within .project-tile__meta .tags { opacity: 1; }
+.project-tile:focus-within .project-tile__title { transform: none; }
 
 /* Tags */
 .tags {

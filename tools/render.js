@@ -275,13 +275,13 @@ function renderHome(opts = {}) {
   const h = site.home;
   const tiles = projects.map(pr => {
     const doc = `projects/${pr.slug}`;
-    const tagged = pr.home && pr.home.showTags;
+    // Figma: Project Tile (Card). Tags are revealed on hover — see .project-tile in styles.css
     return `          <li>
-            <a class="project-tile${tagged ? ' project-tile--tagged' : ''}" href="${projectHref(c, pr.slug)}">
+            <a class="project-tile" href="${projectHref(c, pr.slug)}">
               <div class="project-tile__media"${c.m(doc, 'cover', pr.cover)}>${img(c, pr.cover)}</div>
-              <div class="project-tile__meta">${tagged ? `
-                ${tags(c, doc, pr.tags)}` : ''}
-                <h2 class="project-tile__title"><span${c.t(doc, 'title')}>${esc(pr.title)}</span> <span class="project-tile__arrow" aria-hidden="true"></span></h2>
+              <div class="project-tile__meta">
+                ${tags(c, doc, pr.tags)}
+                <h2 class="project-tile__title"><span${c.t(doc, 'title')}>${esc(pr.title)}</span> <span class="project-tile__arrow" aria-hidden="true"><img src="${c.p}assets/arrow.svg" width="26" height="21.4744" alt=""><img class="project-tile__arrow-hover" src="${c.p}assets/arrow-active.svg" width="26" height="21.4744" alt=""></span></h2>
               </div>
             </a>
           </li>`;

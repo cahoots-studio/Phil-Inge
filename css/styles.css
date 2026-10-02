@@ -134,13 +134,14 @@ address { font-style: normal; }
 
 .site-header {
   --nav-pad-y: var(--pad-block-medium);
+  --nav-pad-bottom: 32px; /* Figma: Padding/Block/Small (Desktop mode) */
   --nav-pad-x: var(--pad-section-global);
   --nav-row: 70px;
   --nav-gap: 16px; /* 32px when expanded */
   --nav-text: 16px;
   position: relative;
   z-index: 50;
-  height: calc(var(--nav-pad-y) * 2 + var(--nav-row) + var(--nav-gap) + 1px);
+  height: calc(var(--nav-pad-y) + var(--nav-pad-bottom) + var(--nav-row) + var(--nav-gap) + 1px);
 }
 
 .site-header__inner {
@@ -149,7 +150,7 @@ address { font-style: normal; }
   display: flex;
   flex-direction: column;
   gap: var(--nav-gap);
-  padding: var(--nav-pad-y) var(--nav-pad-x);
+  padding: var(--nav-pad-y) var(--nav-pad-x) var(--nav-pad-bottom);
   background: var(--scheme-bg);
   color: var(--scheme-text);
 }
@@ -265,6 +266,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 @media (max-width: 1024px) {
   .site-header {
     --nav-pad-y: 8px;
+    --nav-pad-bottom: 8px;
     --nav-pad-x: 20px;
     --nav-row: 50.28px;
     height: calc(var(--nav-pad-y) * 2 + var(--nav-row));
@@ -340,13 +342,15 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   object-fit: cover;
 }
 
-/* Figma: Project Tile (Card), Default → Hover, ease-out 400ms.
-   Title & Tags is a plain left-aligned flex row. On hover the tags open and
-   fade in, the gap grows to 24px, and the title slides along after them; the
-   arrow turns pink. The tags sit in a one-cell grid whose track animates
-   0fr → 1fr — CSS can't animate width to "auto", this is the standard way. */
+/* Figma: Project Tile (Card), Default → Hover. Title & Tags is a plain
+   left-aligned flex row. Staged, ~400ms in total:
+     hover in  — the title slides over (250ms), then the tags fade in (200ms)
+     hover out — the tags fade out (150ms), then the title slides back
+   The space for the tags opens via a one-cell grid whose track animates
+   0fr → 1fr (CSS can't animate width to "auto"). Tags never shrink or wrap. */
 .project-tile {
-  --tile-ease: 0.4s cubic-bezier(0, 0, 0.58, 1); /* Figma EASE_OUT */
+  --tile-ease: cubic-bezier(0, 0, 0.58, 1); /* Figma EASE_OUT */
+  --tile-slide: 0.25s;
 }
 
 .project-tile__meta {
@@ -354,7 +358,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   align-items: center;
   gap: 0;
   min-height: 52px;
-  transition: gap var(--tile-ease);
+  transition: gap var(--tile-slide) var(--tile-ease) 0.1s;
 }
 
 .project-tile__tags {
@@ -362,7 +366,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   grid-template-columns: 0fr;
   flex: 0 1 auto;
   min-width: 0;
-  transition: grid-template-columns var(--tile-ease);
+  transition: grid-template-columns var(--tile-slide) var(--tile-ease) 0.1s;
 }
 
 .project-tile__tags .tags {
@@ -370,7 +374,11 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   min-width: 0;
   overflow: hidden;
   opacity: 0;
-  transition: opacity var(--tile-ease);
+  transition: opacity 0.15s var(--tile-ease);
+}
+.project-tile__tags .tag {
+  flex: none;
+  white-space: nowrap;
 }
 
 .project-tile__title {
@@ -395,13 +403,22 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .project-tile__arrow img {
   position: absolute;
   inset: 0;
-  transition: opacity var(--tile-ease);
+  transition: opacity var(--tile-slide) var(--tile-ease);
 }
 .project-tile__arrow-hover { opacity: 0; }
 
-.project-tile:is(:hover, :focus-visible, :focus-within) .project-tile__meta { gap: var(--gap-medium); }
-.project-tile:is(:hover, :focus-visible, :focus-within) .project-tile__tags { grid-template-columns: 1fr; }
-.project-tile:is(:hover, :focus-visible, :focus-within) .project-tile__tags .tags { opacity: 1; }
+.project-tile:is(:hover, :focus-visible, :focus-within) .project-tile__meta {
+  gap: var(--gap-medium);
+  transition-delay: 0s;
+}
+.project-tile:is(:hover, :focus-visible, :focus-within) .project-tile__tags {
+  grid-template-columns: 1fr;
+  transition-delay: 0s;
+}
+.project-tile:is(:hover, :focus-visible, :focus-within) .project-tile__tags .tags {
+  opacity: 1;
+  transition: opacity 0.2s var(--tile-ease) 0.2s;
+}
 .project-tile:is(:hover, :focus-visible) .project-tile__arrow-hover { opacity: 1; }
 
 /* Tags */

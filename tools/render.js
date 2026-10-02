@@ -281,7 +281,7 @@ function renderHome(opts = {}) {
             <a class="project-tile" href="${projectHref(c, pr.slug)}">
               <div class="project-tile__media"${c.m(doc, 'cover', pr.cover)}>${img(c, pr.cover)}</div>
               <div class="project-tile__meta">
-                ${tags(c, doc, pr.tags)}
+                <div class="project-tile__tags">${tags(c, doc, pr.tags)}</div>
                 <h2 class="project-tile__title"><span${c.t(doc, 'title')}>${esc(pr.title)}</span> <span class="project-tile__arrow" aria-hidden="true"><img src="${c.p}assets/arrow.svg" width="26" height="21.4744" alt=""><img class="project-tile__arrow-hover" src="${c.p}assets/arrow-active.svg" width="26" height="21.4744" alt=""></span></h2>
               </div>
             </a>

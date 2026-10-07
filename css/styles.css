@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Tokens — mirrored from the Supercomponent Figma variables
+   Tokens — colors here; spacing/type/radius in css/tokens.css (from Figma)
    ========================================================================== */
 :root {
   /* Key colors */
@@ -24,54 +24,34 @@
   --scheme-button-text: #f6f5f1;
   --scheme-button-border: #24201a;
 
-  /* Typefaces */
-  --font-headline: "Dela Gothic One", sans-serif;
-  --font-text: "Inter", sans-serif;
+  /* Spacing, type and radius come from css/tokens.css (generated from the
+     Figma variables, one value per breakpoint mode). The names below are the
+     site's shorthand for them. Size, radius, corners and width tokens are
+     used under their Figma names directly (--size-text-small, --corners-tag…). */
+  --font-headline: var(--typeface-family-headline), sans-serif;
+  --font-text: var(--typeface-family-text), sans-serif;
 
-  /* Type sizes */
-  --size-headline-hero: 168px;
-  --size-headline-huge: 116px;
-  --size-headline-large: 80px;
-  --size-headline-medium: 52px;
-  --size-headline-small: 32px;
-  --size-headline-tiny: 22px;
-  --size-text-huge: 52px;
-  --size-text-large: 38px;
-  --size-text-medium: 24px;
-  --size-text-small: 16px;
-  --size-text-tiny: 14px;
+  --gap-tiny: var(--padding-gap-tiny);
+  --gap-small: var(--padding-gap-small);
+  --gap-medium: var(--padding-gap-medium);
+  --gap-large: var(--padding-gap-large);
+  --gap-huge: var(--padding-gap-huge);
+  --pad-control-tiny: var(--padding-control-tiny);
+  --pad-control-small: var(--padding-control-small);
+  --pad-control-medium: var(--padding-control-medium);
+  --pad-control-large: var(--padding-control-large);
+  --pad-control-huge: var(--padding-control-huge);
+  --pad-section-global: var(--padding-section-global);
+  --pad-section-large: var(--padding-section-large);
+  --pad-section-small: var(--padding-section-small);
+  --pad-section-gallery: var(--padding-section-global);
+  --pad-block-tiny: var(--padding-block-tiny);
+  --pad-block-small: var(--padding-block-small);
+  --pad-block-medium: var(--padding-block-medium);
+  --container-max: var(--width-container-large);
 
-  /* Spacing */
-  --gap-tiny: 8px;
-  --gap-small: 16px;
-  --gap-medium: 24px;
-  --gap-large: 40px;
-  --gap-huge: 80px;
-  --pad-control-tiny: 4px;
-  --pad-control-small: 8px;
-  --pad-control-medium: 16px;
-  --pad-control-large: 24px;
-  --pad-control-huge: 32px;
-  --pad-section-global: 64px;
-  --pad-section-large: 160px;
-  --pad-section-small: 56px;
-  --pad-section-gallery: var(--pad-section-global); /* halves on mobile */
-  --pad-block-small: 56px;
-  --pad-block-medium: 64px;
+  /* Not a Figma variable: the comps use a raw 32px gap between gallery images */
   --gap-media: 32px;
-
-  /* Radii */
-  --radius-small: 4px;
-  --radius-medium: 16px;
-  --radius-large: 24px;
-  --radius-round: 9999px;
-  --corners-media: 16px;
-  --corners-tag: 4px;
-  --corners-button: 16px;
-  --corners-input: 4px;
-
-  --container-max: 1600px;
-  --width-column-medium: 560px;
 }
 
 /* Scheme 3 — Contrast: everything inside resolves its roles through here */
@@ -133,12 +113,14 @@ address { font-style: normal; }
 }
 
 .site-header {
+  /* Figma Navigation bindings: Block/Medium top, Block/Small bottom,
+     Section/Global sides, Gap/Medium above the rule (Gap/Large expanded) */
   --nav-pad-y: var(--pad-block-medium);
-  --nav-pad-bottom: 32px; /* Figma: Padding/Block/Small (Desktop mode) */
+  --nav-pad-bottom: var(--pad-block-small);
   --nav-pad-x: var(--pad-section-global);
   --nav-row: 70px;
-  --nav-gap: 16px; /* 32px when expanded */
-  --nav-text: 16px;
+  --nav-gap: var(--gap-medium);
+  --nav-text: var(--size-text-small);
   position: relative;
   z-index: 50;
   height: calc(var(--nav-pad-y) + var(--nav-pad-bottom) + var(--nav-row) + var(--nav-gap) + 1px);
@@ -181,14 +163,14 @@ address { font-style: normal; }
 .site-nav {
   display: flex;
   justify-content: flex-end;
-  gap: 64px;
+  gap: var(--gap-huge);
 }
 
 .site-nav__col {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--gap-small);
+  gap: var(--gap-medium);
 }
 
 .site-nav__heading {
@@ -201,16 +183,16 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .site-nav__links {
   display: none;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--gap-small);
 }
 .site-nav:hover .site-nav__links,
 .site-nav:focus-within .site-nav__links { display: flex; }
 
 /* Layout=Desktop Expanded: rule drops to 32px, columns take their comp widths
    (min-width rather than width so long link names aren't clipped) */
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
   .site-header__inner:has(.site-nav:hover),
-  .site-header__inner:has(.site-nav:focus-within) { gap: 32px; }
+  .site-header__inner:has(.site-nav:focus-within) { gap: var(--gap-large); }
   .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(1) { min-width: 124px; }
   .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(2) { min-width: 110px; }
   .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(3) { min-width: 103px; }
@@ -258,16 +240,11 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .site-header__toggle span:first-child { top: 8px; }
 .site-header__toggle span:last-child  { top: 14px; }
 
-@media (max-width: 1300px) {
-  .site-nav { gap: var(--gap-large); }
-}
-
-/* Layout=Mobile / Mobile Open */
-@media (max-width: 1024px) {
+/* Layout=Mobile / Mobile Open — from the Tablet mode down */
+@media (max-width: 1023.98px) {
   .site-header {
-    --nav-pad-y: 8px;
-    --nav-pad-bottom: 8px;
-    --nav-pad-x: 20px;
+    --nav-pad-y: var(--pad-block-tiny);
+    --nav-pad-bottom: var(--pad-block-tiny);
     --nav-row: 50.28px;
     height: calc(var(--nav-pad-y) * 2 + var(--nav-row));
   }
@@ -290,11 +267,10 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
     display: flex;
     flex: 0 0 100%;
     flex-direction: column;
-    gap: 32px;
-    margin-top: var(--gap-small); /* 16 + bar gap 16 = 32 in the comp */
+    gap: var(--gap-huge);
+    margin-top: calc(var(--gap-huge) - var(--gap-small)); /* bar → panel = Gap/Huge */
   }
-  .site-header.is-open .site-nav__col { gap: 12px; }
-  .site-header.is-open .site-nav__heading { font-size: 17px; }
+  .site-header.is-open .site-nav__col { gap: var(--gap-medium); }
   .site-header.is-open .site-nav__links { display: flex; }
 
   /* Open state shows the "<" close glyph from the comp */
@@ -652,7 +628,7 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
 .site-footer {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--gap-large);
   padding: var(--pad-block-medium) var(--pad-section-global);
   background: var(--scheme-bg);
   color: var(--scheme-text);
@@ -678,17 +654,17 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
   gap: var(--gap-tiny);
 }
 
-.site-footer__nav { display: flex; gap: 64px; }
+.site-footer__nav { display: flex; gap: var(--gap-huge); }
 
 .site-footer__col {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-small);
+  gap: var(--gap-medium);
 }
 .site-footer__col ul {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--gap-small);
 }
 
 .site-footer__heading { font-weight: 600; }
@@ -734,50 +710,27 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--gap-small) 32px;
+  gap: var(--gap-small) var(--gap-large);
   flex-wrap: wrap;
 }
 
 .site-footer__credits {
   display: flex;
-  gap: 32px;
+  gap: var(--gap-large);
   font-size: var(--size-text-tiny);
 }
 
-.site-footer__subnav { display: flex; gap: 32px; flex-wrap: wrap; }
+.site-footer__subnav { display: flex; gap: var(--gap-large); flex-wrap: wrap; }
 
 /* ==========================================================================
    Responsive
    ========================================================================== */
-@media (max-width: 1200px) {
-  :root {
-    --size-headline-hero: 120px;
-    --size-headline-huge: 88px;
-    --pad-section-large: 120px;
-  }
-}
-
 @media (max-width: 900px) {
-  :root {
-    --size-headline-hero: 80px;
-    --size-text-huge: 40px;
-    --size-text-large: 30px;
-    --size-headline-huge: 64px;
-    --size-headline-small: 26px;
-    --pad-section-global: 32px;
-    --pad-section-large: 88px;
-  }
   .portfolio__grid { grid-template-columns: 1fr; }
-
-  :root {
-    --size-headline-large: 56px;
-    --size-headline-medium: 36px;
-    --gap-media: 16px;
-  }
+  :root { --gap-media: 16px; }
   .project-summary { align-items: flex-start; margin-left: 0; }
   .project-row__media { aspect-ratio: 16 / 9; }
   [data-m-aspect] { aspect-ratio: var(--m-aspect) !important; }
-  :root { --pad-section-gallery: calc(var(--pad-section-global) / 2); }
 
   /* mobile: "stack" — the wrapper becomes one column of 4:3 images;
      rows nested inside it stay side by side at equal widths */
@@ -792,18 +745,6 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
 }
 
 @media (max-width: 560px) {
-  :root {
-    --size-headline-hero: 56px;
-    --size-text-huge: 32px;
-    --size-text-large: 26px;
-    --size-headline-huge: 44px;
-    --size-headline-large: 44px;
-    --size-headline-medium: 30px;
-    --size-headline-small: 22px;
-    --pad-section-global: 16px;
-    --pad-section-large: 64px;
-    --pad-control-huge: 20px;
-  }
   .site-footer__nav { flex-direction: column; gap: var(--gap-medium); }
   .site-footer__credits { flex-direction: column; gap: var(--gap-tiny); }
 }

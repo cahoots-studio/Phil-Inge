@@ -1,0 +1,698 @@
+{
+  "source": "Figma file lku8ICcBCPYcllZIIjVi3u — Style Guide & Component Library",
+  "exported": "2026-10-02",
+  "breakpoints": {
+    "1440": 1280,
+    "1920": 1680,
+    "Desktop": 1024,
+    "Tablet": 768,
+    "Mobile Landscape": 480,
+    "Mobile Portrait": 0
+  },
+  "collections": {
+    "UI + Spacing": {
+      "modes": [
+        "1920",
+        "1440",
+        "Desktop",
+        "Tablet",
+        "Mobile Landscape",
+        "Mobile Portrait"
+      ],
+      "variables": {
+        "Width/Container/Small": {
+          "1440": 768,
+          "1920": 768,
+          "Desktop": 768,
+          "Tablet": 768,
+          "Mobile Landscape": 768,
+          "Mobile Portrait": 768
+        },
+        "Width/Column/Widest": {
+          "1440": 1280,
+          "1920": 1280,
+          "Desktop": 1280,
+          "Tablet": 1280,
+          "Mobile Landscape": 1280,
+          "Mobile Portrait": 1280
+        },
+        "Width/Column/Wider": {
+          "1440": 1024,
+          "1920": 1024,
+          "Desktop": 1024,
+          "Tablet": 1024,
+          "Mobile Landscape": 1024,
+          "Mobile Portrait": 1024
+        },
+        "Width/Column/Wide": {
+          "1440": 768,
+          "1920": 768,
+          "Desktop": 768,
+          "Tablet": 768,
+          "Mobile Landscape": 768,
+          "Mobile Portrait": 768
+        },
+        "Width/Column/Medium": {
+          "1440": 560,
+          "1920": 560,
+          "Desktop": 560,
+          "Tablet": 560,
+          "Mobile Landscape": 560,
+          "Mobile Portrait": 560
+        },
+        "Width/Column/Tight": {
+          "1440": 480,
+          "1920": 480,
+          "Desktop": 480,
+          "Tablet": 480,
+          "Mobile Landscape": 480,
+          "Mobile Portrait": 480
+        },
+        "Width/Column/Tighter": {
+          "1440": 400,
+          "1920": 400,
+          "Desktop": 400,
+          "Tablet": 400,
+          "Mobile Landscape": 400,
+          "Mobile Portrait": 400
+        },
+        "Width/Column/Tightest": {
+          "1440": 320,
+          "1920": 320,
+          "Desktop": 320,
+          "Tablet": 320,
+          "Mobile Landscape": 320,
+          "Mobile Portrait": 320
+        },
+        "Width/Container/Medium": {
+          "1440": 1120,
+          "1920": 1200,
+          "Desktop": 1024,
+          "Tablet": 1024,
+          "Mobile Landscape": 1024,
+          "Mobile Portrait": 1024
+        },
+        "Width/Container/Large": {
+          "1440": 1440,
+          "1920": 1600,
+          "Desktop": 1280,
+          "Tablet": 1280,
+          "Mobile Landscape": 1280,
+          "Mobile Portrait": 1280
+        },
+        "Width/Container/Full": {
+          "1440": "100%",
+          "1920": "100%",
+          "Desktop": "100%",
+          "Tablet": "100%",
+          "Mobile Landscape": "100%",
+          "Mobile Portrait": "100%"
+        },
+        "Padding/Gap/None": {
+          "1440": 0,
+          "1920": 0,
+          "Desktop": 0,
+          "Tablet": 0,
+          "Mobile Landscape": 0,
+          "Mobile Portrait": 0
+        },
+        "Padding/Gap/Tiny": {
+          "1440": 4,
+          "1920": 8,
+          "Desktop": 4,
+          "Tablet": 4,
+          "Mobile Landscape": 4,
+          "Mobile Portrait": 4
+        },
+        "Padding/Gap/Small": {
+          "1440": 12,
+          "1920": 16,
+          "Desktop": 8,
+          "Tablet": 8,
+          "Mobile Landscape": 8,
+          "Mobile Portrait": 8
+        },
+        "Padding/Gap/Medium": {
+          "1440": 20,
+          "1920": 24,
+          "Desktop": 16,
+          "Tablet": 16,
+          "Mobile Landscape": 12,
+          "Mobile Portrait": 12
+        },
+        "Padding/Gap/Large": {
+          "1440": 36,
+          "1920": 40,
+          "Desktop": 32,
+          "Tablet": 24,
+          "Mobile Landscape": 20,
+          "Mobile Portrait": 16
+        },
+        "Padding/Gap/Huge": {
+          "1440": 72,
+          "1920": 80,
+          "Desktop": 64,
+          "Tablet": 48,
+          "Mobile Landscape": 40,
+          "Mobile Portrait": 32
+        },
+        "Padding/Block/None": {
+          "1440": 0,
+          "1920": 0,
+          "Desktop": 0,
+          "Tablet": 0,
+          "Mobile Landscape": 0,
+          "Mobile Portrait": 0
+        },
+        "Padding/Section/Global": {
+          "1440": 80,
+          "1920": 120,
+          "Desktop": 64,
+          "Tablet": 48,
+          "Mobile Landscape": 32,
+          "Mobile Portrait": 20
+        },
+        "Padding/Section/Large": {
+          "1440": {
+            "alias": "Padding/Block/Large"
+          },
+          "1920": {
+            "alias": "Padding/Block/Large"
+          },
+          "Desktop": {
+            "alias": "Padding/Block/Large"
+          },
+          "Tablet": {
+            "alias": "Padding/Block/Large"
+          },
+          "Mobile Landscape": {
+            "alias": "Padding/Block/Large"
+          },
+          "Mobile Portrait": {
+            "alias": "Padding/Block/Large"
+          }
+        },
+        "Padding/Section/Medium": {
+          "1440": {
+            "alias": "Padding/Block/Medium"
+          },
+          "1920": {
+            "alias": "Padding/Block/Medium"
+          },
+          "Desktop": {
+            "alias": "Padding/Block/Medium"
+          },
+          "Tablet": {
+            "alias": "Padding/Block/Medium"
+          },
+          "Mobile Landscape": {
+            "alias": "Padding/Block/Medium"
+          },
+          "Mobile Portrait": {
+            "alias": "Padding/Block/Medium"
+          }
+        },
+        "Padding/Section/Small": {
+          "1440": {
+            "alias": "Padding/Block/Small"
+          },
+          "1920": {
+            "alias": "Padding/Block/Small"
+          },
+          "Desktop": {
+            "alias": "Padding/Block/Small"
+          },
+          "Tablet": {
+            "alias": "Padding/Block/Small"
+          },
+          "Mobile Landscape": {
+            "alias": "Padding/Block/Small"
+          },
+          "Mobile Portrait": {
+            "alias": "Padding/Block/Small"
+          }
+        },
+        "Padding/Block/Tiny": {
+          "1440": 20,
+          "1920": 24,
+          "Desktop": 16,
+          "Tablet": 12,
+          "Mobile Landscape": 12,
+          "Mobile Portrait": 8
+        },
+        "Padding/Block/Small": {
+          "1440": 44,
+          "1920": 56,
+          "Desktop": 32,
+          "Tablet": 24,
+          "Mobile Landscape": 20,
+          "Mobile Portrait": 16
+        },
+        "Padding/Block/Medium": {
+          "1440": 80,
+          "1920": 96,
+          "Desktop": 64,
+          "Tablet": 48,
+          "Mobile Landscape": 40,
+          "Mobile Portrait": 32
+        },
+        "Padding/Block/Large": {
+          "1440": 144,
+          "1920": 160,
+          "Desktop": 128,
+          "Tablet": 96,
+          "Mobile Landscape": 72,
+          "Mobile Portrait": 56
+        },
+        "Padding/Block/Huge": {
+          "1440": 288,
+          "1920": 320,
+          "Desktop": 256,
+          "Tablet": 192,
+          "Mobile Landscape": 144,
+          "Mobile Portrait": 112
+        },
+        "Corners/Modal": {
+          "1440": {
+            "alias": "Radius/Large"
+          },
+          "1920": {
+            "alias": "Radius/Large"
+          },
+          "Desktop": {
+            "alias": "Radius/Large"
+          },
+          "Tablet": {
+            "alias": "Radius/Large"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Large"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Large"
+          }
+        },
+        "Corners/Card": {
+          "1440": {
+            "alias": "Radius/Large"
+          },
+          "1920": {
+            "alias": "Radius/Large"
+          },
+          "Desktop": {
+            "alias": "Radius/Large"
+          },
+          "Tablet": {
+            "alias": "Radius/Large"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Large"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Large"
+          }
+        },
+        "Corners/Media": {
+          "1440": {
+            "alias": "Radius/Medium"
+          },
+          "1920": {
+            "alias": "Radius/Medium"
+          },
+          "Desktop": {
+            "alias": "Radius/Medium"
+          },
+          "Tablet": {
+            "alias": "Radius/Medium"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Medium"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Medium"
+          }
+        },
+        "Corners/Button": {
+          "1440": {
+            "alias": "Radius/Medium"
+          },
+          "1920": {
+            "alias": "Radius/Medium"
+          },
+          "Desktop": {
+            "alias": "Radius/Medium"
+          },
+          "Tablet": {
+            "alias": "Radius/Medium"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Medium"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Medium"
+          }
+        },
+        "Corners/Tag": {
+          "1440": {
+            "alias": "Radius/Small"
+          },
+          "1920": {
+            "alias": "Radius/Small"
+          },
+          "Desktop": {
+            "alias": "Radius/Small"
+          },
+          "Tablet": {
+            "alias": "Radius/Small"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Tiny"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Tiny"
+          }
+        },
+        "Corners/Avatar": {
+          "1440": {
+            "alias": "Radius/Round"
+          },
+          "1920": {
+            "alias": "Radius/Round"
+          },
+          "Desktop": {
+            "alias": "Radius/Round"
+          },
+          "Tablet": {
+            "alias": "Radius/Round"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Round"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Round"
+          }
+        },
+        "Corners/Input": {
+          "1440": {
+            "alias": "Radius/Small"
+          },
+          "1920": {
+            "alias": "Radius/Small"
+          },
+          "Desktop": {
+            "alias": "Radius/Small"
+          },
+          "Tablet": {
+            "alias": "Radius/Small"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Small"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Small"
+          }
+        },
+        "Corners/Control": {
+          "1440": {
+            "alias": "Radius/Tiny"
+          },
+          "1920": {
+            "alias": "Radius/Tiny"
+          },
+          "Desktop": {
+            "alias": "Radius/Tiny"
+          },
+          "Tablet": {
+            "alias": "Radius/Tiny"
+          },
+          "Mobile Landscape": {
+            "alias": "Radius/Tiny"
+          },
+          "Mobile Portrait": {
+            "alias": "Radius/Tiny"
+          }
+        },
+        "Radius/Round": {
+          "1440": 9999,
+          "1920": 9999,
+          "Desktop": 9999,
+          "Tablet": 9999,
+          "Mobile Landscape": 9999,
+          "Mobile Portrait": 9999
+        },
+        "Radius/Huge": {
+          "1440": 32,
+          "1920": 32,
+          "Desktop": 32,
+          "Tablet": 32,
+          "Mobile Landscape": 32,
+          "Mobile Portrait": 32
+        },
+        "Radius/Large": {
+          "1440": 24,
+          "1920": 24,
+          "Desktop": 24,
+          "Tablet": 24,
+          "Mobile Landscape": 24,
+          "Mobile Portrait": 24
+        },
+        "Radius/Medium": {
+          "1440": 16,
+          "1920": 16,
+          "Desktop": 16,
+          "Tablet": 16,
+          "Mobile Landscape": 16,
+          "Mobile Portrait": 16
+        },
+        "Radius/Small": {
+          "1440": 4,
+          "1920": 4,
+          "Desktop": 4,
+          "Tablet": 4,
+          "Mobile Landscape": 4,
+          "Mobile Portrait": 4
+        },
+        "Radius/Tiny": {
+          "1440": 2,
+          "1920": 2,
+          "Desktop": 2,
+          "Tablet": 2,
+          "Mobile Landscape": 2,
+          "Mobile Portrait": 2
+        },
+        "Radius/None": {
+          "1440": 0,
+          "1920": 0,
+          "Desktop": 0,
+          "Tablet": 0,
+          "Mobile Landscape": 0,
+          "Mobile Portrait": 0
+        },
+        "Padding/Control/None": {
+          "1440": 0,
+          "1920": 0,
+          "Desktop": 0,
+          "Tablet": 0,
+          "Mobile Landscape": 0,
+          "Mobile Portrait": 0
+        },
+        "Padding/Control/Tiny": {
+          "1440": 4,
+          "1920": 4,
+          "Desktop": 4,
+          "Tablet": 4,
+          "Mobile Landscape": 4,
+          "Mobile Portrait": 4
+        },
+        "Padding/Control/Small": {
+          "1440": 8,
+          "1920": 8,
+          "Desktop": 8,
+          "Tablet": 8,
+          "Mobile Landscape": 8,
+          "Mobile Portrait": 8
+        },
+        "Padding/Control/Medium": {
+          "1440": 16,
+          "1920": 16,
+          "Desktop": 16,
+          "Tablet": 16,
+          "Mobile Landscape": 16,
+          "Mobile Portrait": 16
+        },
+        "Padding/Control/Large": {
+          "1440": 24,
+          "1920": 24,
+          "Desktop": 24,
+          "Tablet": 24,
+          "Mobile Landscape": 24,
+          "Mobile Portrait": 24
+        },
+        "Padding/Control/Huge": {
+          "1440": 32,
+          "1920": 32,
+          "Desktop": 32,
+          "Tablet": 32,
+          "Mobile Landscape": 32,
+          "Mobile Portrait": 32
+        }
+      }
+    },
+    "Typography": {
+      "modes": [
+        "1920",
+        "1440",
+        "Desktop",
+        "Tablet",
+        "Mobile Landscape",
+        "Mobile Portrait"
+      ],
+      "variables": {
+        "Typeface/Family/Headline": {
+          "1440": "Dela Gothic One",
+          "1920": "Dela Gothic One",
+          "Desktop": "Dela Gothic One",
+          "Tablet": "Dela Gothic One",
+          "Mobile Landscape": "Inter Tight",
+          "Mobile Portrait": "Inter Tight"
+        },
+        "Typeface/Family/Text": {
+          "1440": "Inter",
+          "1920": "Inter",
+          "Desktop": "Inter",
+          "Tablet": "Inter",
+          "Mobile Landscape": "Inter",
+          "Mobile Portrait": "Inter"
+        },
+        "Typeface/Family/Decorative": {
+          "1440": "Roboto Mono",
+          "1920": "Roboto Mono",
+          "Desktop": "Roboto Mono",
+          "Tablet": "Roboto Mono",
+          "Mobile Landscape": "Roboto Mono",
+          "Mobile Portrait": "Roboto Mono"
+        },
+        "Size/Headline/Hero": {
+          "1440": 144,
+          "1920": 168,
+          "Desktop": 128,
+          "Tablet": 96,
+          "Mobile Landscape": 64,
+          "Mobile Portrait": 52
+        },
+        "Size/Headline/Huge": {
+          "1440": 100,
+          "1920": 116,
+          "Desktop": 90,
+          "Tablet": 72,
+          "Mobile Landscape": 52,
+          "Mobile Portrait": 44
+        },
+        "Size/Headline/Large": {
+          "1440": 70,
+          "1920": 80,
+          "Desktop": 64,
+          "Tablet": 56,
+          "Mobile Landscape": 42,
+          "Mobile Portrait": 36
+        },
+        "Size/Headline/Medium": {
+          "1440": 48,
+          "1920": 52,
+          "Desktop": 45,
+          "Tablet": 40,
+          "Mobile Landscape": 34,
+          "Mobile Portrait": 30
+        },
+        "Size/Headline/Small": {
+          "1440": 30,
+          "1920": 32,
+          "Desktop": 28,
+          "Tablet": 26,
+          "Mobile Landscape": 26,
+          "Mobile Portrait": 24
+        },
+        "Size/Headline/Tiny": {
+          "1440": 20,
+          "1920": 22,
+          "Desktop": 20,
+          "Tablet": 20,
+          "Mobile Landscape": 18,
+          "Mobile Portrait": 18
+        },
+        "Size/Text/Huge": {
+          "1440": 48,
+          "1920": 52,
+          "Desktop": 48,
+          "Tablet": 40,
+          "Mobile Landscape": 32,
+          "Mobile Portrait": 30
+        },
+        "Size/Text/Large": {
+          "1440": 36,
+          "1920": 38,
+          "Desktop": 36,
+          "Tablet": 32,
+          "Mobile Landscape": 28,
+          "Mobile Portrait": 26
+        },
+        "Size/Text/Medium": {
+          "1440": 24,
+          "1920": 24,
+          "Desktop": 24,
+          "Tablet": 22,
+          "Mobile Landscape": 20,
+          "Mobile Portrait": 20
+        },
+        "Size/Text/Small": {
+          "1440": 16,
+          "1920": 16,
+          "Desktop": 16,
+          "Tablet": 18,
+          "Mobile Landscape": 17,
+          "Mobile Portrait": 17
+        },
+        "Size/Text/Tiny": {
+          "1440": 14,
+          "1920": 14,
+          "Desktop": 14,
+          "Tablet": 14,
+          "Mobile Landscape": 14,
+          "Mobile Portrait": 14
+        },
+        "Typeface/Weight/Regular": {
+          "1440": 400,
+          "1920": 400,
+          "Desktop": 400,
+          "Tablet": 400,
+          "Mobile Landscape": 400,
+          "Mobile Portrait": 400
+        },
+        "Typeface/Weight/Medium": {
+          "1440": 500,
+          "1920": 500,
+          "Desktop": 500,
+          "Tablet": 500,
+          "Mobile Landscape": 500,
+          "Mobile Portrait": 500
+        },
+        "Typeface/Weight/Semibold": {
+          "1440": 600,
+          "1920": 600,
+          "Desktop": 600,
+          "Tablet": 600,
+          "Mobile Landscape": 600,
+          "Mobile Portrait": 600
+        },
+        "Typeface/Weight/Bold": {
+          "1440": 700,
+          "1920": 700,
+          "Desktop": 700,
+          "Tablet": 700,
+          "Mobile Landscape": 700,
+          "Mobile Portrait": 700
+        }
+      }
+    }
+  }
+}

@@ -133,7 +133,8 @@ function head({ title, description }, c) {
   <meta name="description" content="${esc(description)}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Inter:wght@400;600&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="${c.p}css/tokens.css">
   <link rel="stylesheet" href="${c.p}css/styles.css">${c.edit ? `
   <link rel="stylesheet" href="/tools/editor/editor.css">` : ''}
 </head>`;

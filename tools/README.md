@@ -28,10 +28,36 @@ you can also review the diff and commit by hand instead of using Publish.
 
 Stop the editor with Ctrl+C. It only listens on your own machine.
 
+## Design tokens (Figma variables)
+
+Spacing, type sizes, fonts and radii come straight from the Figma variables,
+**one value per breakpoint mode**:
+
+| Mode | Screen width |
+| --- | --- |
+| 1920 | 1680px and up (the comps) |
+| 1440 | 1280 – 1679px |
+| Desktop | 1024 – 1279px |
+| Tablet | 768 – 1023px |
+| Mobile Landscape | 480 – 767px |
+| Mobile Portrait | under 480px |
+
+- `tokens/figma-variables.json` — every variable in every mode, exported from
+  Figma, plus the breakpoint ranges above.
+- `node tools/tokens.js` — writes `css/tokens.css` from it (don't edit that file).
+- Names follow the Figma path: `Padding/Gap/Tiny` → `--padding-gap-tiny`.
+  `css/styles.css` keeps short aliases (`--gap-tiny`, `--pad-section-global`…).
+
+To re-sync after changing variables in Figma: ask Claude to re-export them into
+`tokens/figma-variables.json`, then run `node tools/tokens.js`.
+
+Colors aren't mode-based yet (the Light scheme is hard-coded in styles.css).
+
 ## Other commands
 
 ```bash
 node tools/build.js                       # rebuild HTML from /content
+node tools/tokens.js                      # rebuild css/tokens.css from Figma variables
 node tools/new-project.js "Project Name"  # new project from _template.json
 ```
 

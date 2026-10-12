@@ -50,8 +50,7 @@
   --pad-block-medium: var(--padding-block-medium);
   --container-max: var(--width-container-large);
 
-  /* Not a Figma variable: the comps use a raw 32px gap between gallery images */
-  --gap-media: 32px;
+  --gap-media: var(--padding-gap-media);
 }
 
 /* Scheme 3 — Contrast: everything inside resolves its roles through here */
@@ -121,10 +120,20 @@ address { font-style: normal; }
   --nav-row: 70px;
   --nav-gap: var(--gap-medium);
   --nav-text: var(--size-text-small);
-  position: relative;
+  --header-h: calc(var(--nav-pad-y) + var(--nav-pad-bottom) + var(--nav-row) + var(--nav-gap) + 1px);
+  /* Hidden at the top of the page; slides in once you scroll (js/nav.js).
+     Moved with `top`, not transform, so the fixed mobile menu still works. */
+  position: fixed;
+  top: calc(-1 * var(--header-h) - 2px);
+  left: 0;
+  right: 0;
   z-index: 50;
-  height: calc(var(--nav-pad-y) + var(--nav-pad-bottom) + var(--nav-row) + var(--nav-gap) + 1px);
+  height: var(--header-h);
+  transition: top 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+.site-header.is-revealed,
+.site-header:focus-within,
+.site-header.is-open { top: 0; }
 
 .site-header__inner {
   position: absolute;
@@ -246,7 +255,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
     --nav-pad-y: var(--pad-block-tiny);
     --nav-pad-bottom: var(--pad-block-tiny);
     --nav-row: 50.28px;
-    height: calc(var(--nav-pad-y) * 2 + var(--nav-row));
+    --header-h: calc(var(--nav-pad-y) * 2 + var(--nav-row));
   }
   .site-header__bar { align-items: center; }
   .site-header__rule,
@@ -648,55 +657,52 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
   gap: var(--gap-large);
 }
 
+.site-footer__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-medium);
+}
 .site-footer__address {
   display: flex;
   flex-direction: column;
   gap: var(--gap-tiny);
 }
+.site-footer__address a { padding: 0; }
 
-.site-footer__nav { display: flex; gap: var(--gap-huge); }
+.site-footer__social { display: flex; align-items: center; gap: 16px; }
+.site-footer__social a { display: block; padding: 0; border-radius: var(--radius-small); opacity: 1; transition: opacity 0.15s ease; }
+.site-footer__social a:hover { opacity: 0.7; }
+.site-footer__social img { width: 20px; height: 20px; }
 
+/* Same four columns as the top nav, in an 835px block (Figma) */
+.site-footer__nav { display: flex; flex: 0 1 835px; gap: var(--gap-huge); }
 .site-footer__col {
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   gap: var(--gap-medium);
+  min-width: 0;
 }
-.site-footer__col ul {
+.site-footer__links {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--gap-small);
 }
-
+.site-footer .nav-link { white-space: normal; }
 .site-footer__heading { font-weight: 600; }
+a.site-footer__heading { padding: 0; }
 
-/* Supercomponent logo: mark (rotated 90°) + wordmark, scaled to full width */
-.sc-logo {
-  position: relative;
+/* Logo row: Figma's logo slot keeps the old wordmark's proportions, so the
+   row is tall with the logo vertically centred at the left */
+.site-footer__logo {
+  display: flex;
+  align-items: center;
   width: 100%;
   aspect-ratio: 641.928 / 87.015;
 }
-.sc-logo__mark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 13.56%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.sc-logo__mark img {
-  width: auto;
-  height: 100%;
-  transform: rotate(90deg);
-}
-.sc-logo__wordmark {
-  position: absolute;
-  left: 14.8%;
-  top: 32.49%;
-  width: 85.2%;
-  height: 35.03%;
-}
+.site-footer__logo a { display: block; padding: 0; }
+.site-footer__logo img { width: 312.458px; max-width: 100%; height: auto; }
 
 .site-footer__rule {
   width: 100%;
@@ -727,10 +733,13 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
    ========================================================================== */
 @media (max-width: 900px) {
   .portfolio__grid { grid-template-columns: 1fr; }
-  :root { --gap-media: 16px; }
   .project-summary { align-items: flex-start; margin-left: 0; }
   .project-row__media { aspect-ratio: 16 / 9; }
   [data-m-aspect] { aspect-ratio: var(--m-aspect) !important; }
+
+  /* mobile: "cols" — a row of columns becomes a single column */
+  [data-m="cols"] { flex-direction: column !important; }
+  [data-m="cols"] > * { flex: none !important; width: auto !important; align-self: stretch !important; }
 
   /* mobile: "stack" — the wrapper becomes one column of 4:3 images;
      rows nested inside it stay side by side at equal widths */
@@ -741,11 +750,13 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
   [data-m="stack"] .sc-media { aspect-ratio: 4 / 3 !important; height: auto !important; }
 
   .site-footer__upper { flex-direction: column; }
+  .site-footer__nav { flex: none; width: 100%; }
   .site-footer__nav { gap: var(--gap-large); }
 }
 
 @media (max-width: 560px) {
-  .site-footer__nav { flex-direction: column; gap: var(--gap-medium); }
+  .site-footer__nav { flex-direction: column; gap: var(--gap-large); }
+  .site-footer__col { flex: none; }
   .site-footer__credits { flex-direction: column; gap: var(--gap-tiny); }
 }
 

@@ -23,14 +23,28 @@ Open http://localhost:4000 and click around:
   | PNG | PNG, long edge ≤ 2400px |
   | WebP, AVIF, SVG, still GIF | Kept exactly as uploaded |
 
+  **Poster frames** — hover a video and click **Poster**: scrub to any moment
+  and **Use this frame**, or **Upload image…** for a custom poster (cropped to
+  the video's size). The poster shows before the video plays, and in Figma.
+
   Videos are converted with **ffmpeg** (`brew install ffmpeg`). A video that's
   still over 95 MB after converting is refused — GitHub won't accept files over
   100 MB — so trim long clips first. On the site, videos pause for visitors
   with "reduce motion" on, and only play while on screen (`js/media.js`).
-- **Sections** (project pages) — hover a section for its toolbar: switch the
-  Gallery **Layout**, move up/down, duplicate, delete. **+ Add section** between
-  sections inserts a new Gallery in any layout. Switching layouts keeps every
-  image, so images that don't fit a smaller layout come back if you switch back.
+- **Structure** (project pages). Edit mode looks exactly like the live page;
+  controls only appear when you hover something editable:
+  - **Add section** — hover the line between two sections; they slide apart to
+    reveal a full-width *Add section*. It adds a blank section with a container.
+  - **Add component** — a blank container shows *Add component*; between
+    components, hover the line to open the same action. Pick from the library
+    (Gallery, Supercomponent, Top) and its variants.
+  - **Add column** — hover the left/right edge of a container or column; the
+    content squeezes aside to reveal *Add column*. The container becomes a row
+    of columns (stacked on mobile); between columns the same squish adds more.
+  - **Toolbars** — hovering a section, column or component shows its own small
+    toolbar (only the innermost): move, duplicate, delete, and the component's
+    variant (e.g. Gallery Layout). Switching layouts keeps every image.
+  - Empty sections, containers and columns are skipped on the published site.
 - **Publish** — commits `content/`, `assets/` and the generated HTML, then pushes
   to GitHub, which deploys philinge.com. Edit as much as you like first; each
   Publish is one deploy.
@@ -133,6 +147,11 @@ Inside a library component a block names a `field` (plus a `default`), and the
 text comes from the instance's `content.<field>` — that's what edit mode
 changes when you click it. A button's link is `content.<field>Href`. Placed
 directly in a page tree, a block carries its own `text`.
+
+Figma has a matching **Gallery** component (Style Guide → Patterns) built from
+the Media component, with its image layers named `Media 1…6` in the same slot
+order as `content.media[]`. The gap between images is the Figma variable
+`Padding/Gap/Media` (`--padding-gap-media`).
 
 Library components: **Top** (Type: Hero, Subpage, Portfolio — the page
 header), **Gallery** (Layout ×5) and **Supercomponent** (Type: Default, Card).

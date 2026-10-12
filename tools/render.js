@@ -148,9 +148,35 @@ function head({ title, description }, c) {
 </head>`;
 }
 
+// Site navigation, shared by the header and the footer (Figma: Navigation, Footer)
+function navColumns(c, projects, currentSlug) {
+  const links = labels => labels.map(label => ({ label, href: '#' }));
+  return [
+    { heading: 'Portfolio', href: `${c.p}projects/`,
+      links: projects.map(pr => ({ label: pr.title, href: projectHref(c, pr.slug), current: pr.slug === currentSlug })) },
+    { heading: 'Tools', links: links(['Brand Aligner', 'Vibe Dialer', 'Message Maker', 'Builder']) },
+    { heading: 'Services', links: links(['Logo Design', 'Visual Identity Design', 'Website Design', 'Integrated Visual Brand Systems']) },
+    { heading: 'Sessions', links: links(['Learn', 'Build', 'Consult']) },
+  ];
+}
+
+function navList(cols, cls, pad) {
+  return cols.map(col => {
+    const heading = col.href
+      ? `<a class="${cls}__heading" href="${col.href}">${esc(col.heading)}</a>`
+      : `<p class="${cls}__heading">${esc(col.heading)}</p>`;
+    const items = col.links.map(l =>
+      `${pad}    <li><a class="nav-link" href="${esc(l.href)}"${l.current ? ' aria-current="page"' : ''}>${esc(l.label)}</a></li>`).join('\n');
+    return `${pad}<div class="${cls}__col">
+${pad}  ${heading}
+${pad}  <ul class="${cls}__links">
+${items}
+${pad}  </ul>
+${pad}</div>`;
+  }).join('\n');
+}
+
 function header(c, projects, currentSlug) {
-  const portfolio = projects.map(pr =>
-    `              <li><a class="nav-link" href="${projectHref(c, pr.slug)}"${pr.slug === currentSlug ? ' aria-current="page"' : ''}>${esc(pr.title)}</a></li>`).join('\n');
   return `  <header class="site-header" data-sc-scheme="scheme-1">
     <div class="site-header__inner">
       <div class="site-header__bar">
@@ -161,38 +187,7 @@ function header(c, projects, currentSlug) {
           <span></span><span></span>
         </button>
         <nav class="site-nav" id="site-nav" aria-label="Main">
-          <div class="site-nav__col">
-            <a class="site-nav__heading" href="${c.p}projects/">Portfolio</a>
-            <ul class="site-nav__links">
-${portfolio}
-            </ul>
-          </div>
-          <div class="site-nav__col">
-            <p class="site-nav__heading">Tools</p>
-            <ul class="site-nav__links">
-              <li><a class="nav-link" href="#">Brand Aligner</a></li>
-              <li><a class="nav-link" href="#">Vibe Dialer</a></li>
-              <li><a class="nav-link" href="#">Message Maker</a></li>
-              <li><a class="nav-link" href="#">Builder</a></li>
-            </ul>
-          </div>
-          <div class="site-nav__col">
-            <p class="site-nav__heading">Services</p>
-            <ul class="site-nav__links">
-              <li><a class="nav-link" href="#">Logo Design</a></li>
-              <li><a class="nav-link" href="#">Visual Identity Design</a></li>
-              <li><a class="nav-link" href="#">Website Design</a></li>
-              <li><a class="nav-link" href="#">Integrated Visual Brand Systems</a></li>
-            </ul>
-          </div>
-          <div class="site-nav__col">
-            <p class="site-nav__heading">Sessions</p>
-            <ul class="site-nav__links">
-              <li><a class="nav-link" href="#">Learn</a></li>
-              <li><a class="nav-link" href="#">Build</a></li>
-              <li><a class="nav-link" href="#">Consult</a></li>
-            </ul>
-          </div>
+${navList(navColumns(c, projects, currentSlug), 'site-nav', '          ')}
         </nav>
       </div>
       <hr class="site-header__rule">
@@ -200,45 +195,36 @@ ${portfolio}
   </header>`;
 }
 
-function footer(c) {
+// Figma: Patterns → Footer (Scheme 3 — Contrast)
+const SOCIAL = [
+  { name: 'LinkedIn', icon: 'linkedin', href: '#' },
+  { name: 'Instagram', icon: 'instagram', href: '#' },
+  { name: 'Behance', icon: 'behance', href: '#' },
+  { name: 'Awwwards', icon: 'awwwards', href: '#' },
+];
+
+function footer(c, projects) {
+  const social = SOCIAL.map(s =>
+    `          <li><a class="site-footer__social-link" href="${s.href}" aria-label="${s.name}"><img src="${c.p}assets/icons/${s.icon}.svg" width="20" height="20" alt=""></a></li>`).join('\n');
   return `  <footer class="site-footer" data-sc-scheme="scheme-3">
     <div class="site-footer__upper">
-      <address class="site-footer__address">
-        <span>Cahoots Studio</span>
-        <span>1234 Street Name</span>
-        <span>Denver, CO 80202</span>
-      </address>
+      <div class="site-footer__identity">
+        <address class="site-footer__address">
+          <span>c/o Cahoots Studio</span>
+          <span>Denver, CO 80202</span>
+          <a href="https://www.cahoots.studio">www.cahoots.studio</a>
+        </address>
+        <ul class="site-footer__social" aria-label="Social">
+${social}
+        </ul>
+      </div>
       <nav class="site-footer__nav" aria-label="Footer">
-        <div class="site-footer__col">
-          <p class="site-footer__heading">Column One</p>
-          <ul>
-            <li><a href="#">Link One</a></li>
-            <li><a href="#">Link Two</a></li>
-            <li><a href="#">Link Three</a></li>
-          </ul>
-        </div>
-        <div class="site-footer__col">
-          <p class="site-footer__heading">Column Two</p>
-          <ul>
-            <li><a href="#">Link Four</a></li>
-            <li><a href="#">Link Five</a></li>
-            <li><a href="#">Link Six</a></li>
-          </ul>
-        </div>
-        <div class="site-footer__col">
-          <p class="site-footer__heading">Column Three</p>
-          <ul>
-            <li><a href="#">Link Seven</a></li>
-            <li><a href="#">Link Eight</a></li>
-            <li><a href="#">Link Nine</a></li>
-          </ul>
-        </div>
+${navList(navColumns(c, projects), 'site-footer', '        ')}
       </nav>
     </div>
 
-    <div class="sc-logo" role="img" aria-label="Supercomponent">
-      <span class="sc-logo__mark"><img src="${c.p}assets/sc-mark.svg" width="48" height="48" alt=""></span>
-      <img class="sc-logo__wordmark" src="${c.p}assets/sc-wordmark.svg" width="546.913" height="30.486" alt="">
+    <div class="site-footer__logo">
+      <a href="${c.p || './'}" aria-label="Phil Inge — home"><img src="${c.p}assets/logo-light.svg" width="312.458" height="50.9614" alt="Phil Inge"></a>
     </div>
 
     <hr class="site-footer__rule">
@@ -275,7 +261,7 @@ ${header(c, projects, currentSlug)}
 ${main}
   </main>
 
-${footer(c)}`;
+${footer(c, projects)}`;
 }
 
 // ---------------------------------------------------------------- pages
@@ -391,7 +377,7 @@ function nodeStyle(n, parentDir) {
 }
 
 function nodeAttrs(n) {
-  return (n.direction === 'row' ? ' data-dir="row"' : '') + (n.mobile === 'stack' ? ' data-m="stack"' : '')
+  return (n.direction === 'row' ? ' data-dir="row"' : '') + (n.mobile ? ` data-m="${n.mobile === 'cols' ? 'cols' : 'stack'}"` : '')
     + (n.mobileAspect ? ' data-m-aspect' : '');
 }
 
@@ -435,6 +421,21 @@ function blockHref(n, env) {
   return fromContent || n.href || '#';
 }
 
+// Does this page-tree node hold any component? (Empty sections/containers/columns
+// are editing scaffolding: shown in edit mode, skipped on the published site.)
+function hasInstance(n) {
+  return n.type === 'instance' || (n.children || []).some(hasInstance);
+}
+
+// Edit mode only: tag page-tree nodes with their path so the editor can act on them
+function editAttrs(n, env) {
+  if (!env.c.edit || env.instance || !/^sections\./.test(env.path || '')) return '';
+  let a = ` data-node="${env.path}" data-kind="${n.type}"`;
+  if (n.type === 'instance') a += ` data-component="${esc(n.component)}" data-variant="${esc(JSON.stringify(n.variant || {}))}"`;
+  if ((n.type === 'container' || n.type === 'column') && !(n.children || []).length) a += ' data-empty-node';
+  return a;
+}
+
 // env: { c, doc, lib, path (page-tree key path), instance: { content, path } }
 function renderNode(n, env, parentDir, depth) {
   const pad = '  '.repeat(depth);
@@ -448,7 +449,9 @@ function renderNode(n, env, parentDir, depth) {
       const def = env.lib[n.component];
       if (!def) throw new Error(`Unknown component "${n.component}" in ${env.doc}`);
       const { tree } = findVariant(def, n.variant);
-      return renderNode(tree, { ...env, instance: { content: n.content || {}, path: env.path, bind: n.bind } }, parentDir, depth);
+      const html = renderNode(tree, { ...env, instance: { content: n.content || {}, path: env.path, bind: n.bind } }, parentDir, depth);
+      const attrs = editAttrs(n, env);
+      return attrs ? html.replace(/^(\s*<[a-z0-9]+)/, `$1${attrs}`) : html;
     }
     case 'media': {
       // Ratio comes from `aspect` ("16/9"); "Free" = no aspect, sized by fill/fixed
@@ -531,8 +534,9 @@ ${pad}</${tag}>`;
     case 'container':
     case 'column':
     case 'component': {
+      if (!env.c.edit && !env.instance && n.type !== 'component' && !hasInstance(n)) return '';
       const tag = n.type === 'section' ? 'section' : 'div';
-      return `${pad}<${tag} class="sc-${n.type}"${nodeAttrs(n)}${nodeStyle(n, n.type === 'section' ? null : parentDir)}>
+      return `${pad}<${tag} class="sc-${n.type}"${editAttrs(n, env)}${nodeAttrs(n)}${nodeStyle(n, n.type === 'section' ? null : parentDir)}>
 ${kids(n.children)}
 ${pad}</${tag}>`;
     }
@@ -554,11 +558,10 @@ function renderTop(c, doc, data, type, bind) {
 
 function renderSections(c, doc, sections) {
   const lib = loadLibrary();
-  return (sections || []).map((sec, i) => {
-    const html = renderNode(sec, { c, doc, lib, path: `sections.${i}` }, null, 2);
-    // Tag the outer <section> so edit mode can attach section controls
-    return c.edit ? html.replace('<section ', `<section data-edit-section="${i}" `) : html;
-  }).join('\n\n');
+  return (sections || [])
+    .map((sec, i) => renderNode(sec, { c, doc, lib, path: `sections.${i}` }, null, 2))
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 // Every library component variant, for checking against Figma (edit server: /__styleguide)
@@ -597,11 +600,8 @@ function editData(doc, sections) {
   const lib = loadLibrary();
   return {
     doc,
-    library: Object.values(lib).map(d => ({ name: d.name, props: d.props })),
-    sections: (sections || []).map(sec => {
-      const hit = findInstance(sec);
-      return hit ? { component: hit.node.component, variant: hit.node.variant || {} } : null;
-    }),
+    sectionCount: (sections || []).length,
+    library: Object.values(lib).map(d => ({ name: d.name, description: d.description || '', props: d.props })),
   };
 }
 
@@ -627,6 +627,6 @@ ${sections}`);
 
 module.exports = {
   ROOT, CONTENT, MARKER,
-  loadSite, loadLibrary, findVariant, slotCount, newSection, findInstance,
+  loadSite, loadLibrary, loadPresets, findVariant, slotCount, newSection, findInstance,
   renderHome, renderProjects, renderProject, renderStyleguide,
 };

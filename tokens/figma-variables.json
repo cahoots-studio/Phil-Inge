@@ -1,6 +1,6 @@
 {
   "source": "Figma file lku8ICcBCPYcllZIIjVi3u — Style Guide & Component Library",
-  "exported": "2026-10-02",
+  "exported": "2026-10-12",
   "breakpoints": {
     "1440": 1280,
     "1920": 1680,
@@ -535,6 +535,14 @@
           "Tablet": 32,
           "Mobile Landscape": 32,
           "Mobile Portrait": 32
+        },
+        "Padding/Gap/Media": {
+          "1440": 32,
+          "1920": 32,
+          "Desktop": 32,
+          "Tablet": 32,
+          "Mobile Landscape": 16,
+          "Mobile Portrait": 16
         }
       }
     },

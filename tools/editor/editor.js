@@ -16,9 +16,14 @@
   const publishBtn = bar.querySelector('.sc-editbar__publish');
 
   let pending = 0;
+  let quietTimer = null;
   function setStatus(text, kind) {
     status.textContent = text;
     status.dataset.kind = kind || '';
+    // The bar is a dot until there's news; it shows briefly, then tucks away
+    clearTimeout(quietTimer);
+    bar.classList.add('is-active');
+    if (kind !== 'busy' && kind !== 'error') quietTimer = setTimeout(() => bar.classList.remove('is-active'), 2500);
   }
   function start(text) { pending++; setStatus(text, 'busy'); }
   function done(err) {
@@ -117,6 +122,7 @@
         el.src = prefix + res.src;
         if (old) old.replaceWith(el); else s.prepend(el);
         if (res.type === 'video') { const p = el.play(); if (p && p.catch) p.catch(() => {}); }
+        syncPosterButton(s);
         s.removeAttribute('data-empty');
       });
       done();
@@ -127,7 +133,91 @@
     }
   }
 
+  // ------------------------------------------------------------ poster picker
+  // Video slots get a "Poster" pill: scrub to a frame and use it, or upload an image.
+  const posterDialog = document.createElement('dialog');
+  posterDialog.className = 'sc-poster';
+  posterDialog.innerHTML = `
+    <p class="sc-poster__title">Choose poster frame</p>
+    <video class="sc-poster__video" muted playsinline preload="auto"></video>
+    <div class="sc-poster__scrub">
+      <input class="sc-poster__range" type="range" min="0" max="1" step="0.01" value="0" aria-label="Frame">
+      <output class="sc-poster__time">0.00s</output>
+    </div>
+    <div class="sc-poster__actions">
+      <button type="button" class="sc-poster__btn" data-act="upload">Upload image…</button>
+      <span class="sc-poster__spacer"></span>
+      <button type="button" class="sc-poster__btn" data-act="cancel">Cancel</button>
+      <button type="button" class="sc-poster__btn sc-poster__btn--primary" data-act="use">Use this frame</button>
+    </div>`;
+  document.body.appendChild(posterDialog);
+  const pv = posterDialog.querySelector('video');
+  const range = posterDialog.querySelector('.sc-poster__range');
+  const timeOut = posterDialog.querySelector('.sc-poster__time');
+  const posterFile = document.createElement('input');
+  posterFile.type = 'file';
+  posterFile.accept = 'image/*,.heic,.avif,.webp';
+  posterFile.hidden = true;
+  document.body.appendChild(posterFile);
+  let posterSlot = null;
+
+  const showTime = () => { timeOut.textContent = `${Number(range.value).toFixed(2)}s`; };
+  pv.addEventListener('loadedmetadata', () => { range.max = pv.duration.toFixed(2); showTime(); });
+  range.addEventListener('input', () => { pv.currentTime = Number(range.value); showTime(); });
+
+  function openPoster(slot) {
+    const v = slot.querySelector('video');
+    if (!v) return;
+    posterSlot = slot;
+    pv.src = v.getAttribute('src');
+    range.value = 0; showTime();
+    posterDialog.showModal();
+  }
+
+  async function savePoster(body, headers, query) {
+    const slot = posterSlot;
+    posterDialog.close();
+    start('Saving poster…');
+    try {
+      const res = await api(`/__api/poster?target=${encodeURIComponent(slot.dataset.editMedia)}${query || ''}`, { headers, body });
+      const prefix = location.pathname.startsWith('/projects/') ? '../' : '';
+      document.querySelectorAll(`[data-edit-media="${CSS.escape(slot.dataset.editMedia)}"] video`)
+        .forEach(v => { v.poster = prefix + res.poster; });
+      done();
+    } catch (err) { done(err.message); }
+  }
+
+  posterDialog.addEventListener('click', e => {
+    const act = e.target.closest('[data-act]') && e.target.closest('[data-act]').dataset.act;
+    if (act === 'cancel') posterDialog.close();
+    if (act === 'use') savePoster(null, {}, `&t=${encodeURIComponent(range.value)}`);
+    if (act === 'upload') posterFile.click();
+  });
+  posterFile.addEventListener('change', () => {
+    const f = posterFile.files[0];
+    posterFile.value = '';
+    if (f) savePoster(f, { 'Content-Type': f.type || 'application/octet-stream' });
+  });
+  posterDialog.addEventListener('close', () => { pv.removeAttribute('src'); pv.load(); });
+
+  function syncPosterButton(slot) {
+    let btn = slot.querySelector('.sc-slot__poster');
+    const hasVideo = !!slot.querySelector('video');
+    if (hasVideo && !btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sc-slot__poster';
+      btn.textContent = 'Poster';
+      btn.title = 'Choose the frame shown before the video plays';
+      btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openPoster(slot); });
+      slot.appendChild(btn);
+    } else if (!hasVideo && btn) {
+      btn.remove();
+    }
+  }
+
   document.querySelectorAll('[data-edit-media]').forEach(slot => {
+    syncPosterButton(slot);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'sc-slot__button';
@@ -163,131 +253,198 @@
   window.addEventListener('dragover', e => e.preventDefault());
   window.addEventListener('drop', e => e.preventDefault());
 
-  // ------------------------------------------------------------ sections
-  // Project pages carry #sc-edit-data: { doc, library: [{ name, props }], sections: [{ component, variant }] }
+  // ------------------------------------------------------------ structure
+  // Nothing here shows until it's relevant. Invisible strips sit between
+  // sections, components and columns; hovering one opens it up (the content
+  // on either side is pushed apart) to reveal a single action.
   const dataEl = document.getElementById('sc-edit-data');
   if (dataEl) {
     const data = JSON.parse(dataEl.textContent);
-    const libByName = Object.fromEntries(data.library.map(d => [d.name, d]));
-
-    // Keep the scroll position across the reload that follows a structural change
     const saved = sessionStorage.getItem('sc-scroll');
     if (saved) { sessionStorage.removeItem('sc-scroll'); window.scrollTo(0, Number(saved)); }
 
-    async function sectionAction(payload, label) {
+    async function nodeAction(payload, label) {
       if (pending) { setStatus('Wait for saving to finish', 'error'); return; }
       start(label);
       try {
-        await api('/__api/section', {
+        await api('/__api/node', {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ doc: data.doc, ...payload }),
         });
         sessionStorage.setItem('sc-scroll', String(window.scrollY));
         location.reload();
-      } catch (err) {
-        done(err.message);
-      }
+      } catch (err) { done(err.message); }
     }
 
-    const icon = {
+    const ICON = {
       up: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3l5 5-1.1 1.1L8.8 6.1V13H7.2V6.1L4.1 9.1 3 8z"/></svg>',
       down: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13l-5-5 1.1-1.1 3.1 3V3h1.6v6.9l3.1-3L13 8z"/></svg>',
+      left: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8l5-5 1.1 1.1-3 3.1H13v1.6H6.1l3 3.1L8 13z"/></svg>',
+      right: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8l-5 5-1.1-1.1 3-3.1H3V7.2h6.9l-3-3.1L8 3z"/></svg>',
       dup: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h8v9h-2V4H5zM3 5h7v9H3z"/></svg>',
       del: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l1 1h3v1.5H2V3h3zM3.5 6h9l-.7 8H4.2z"/></svg>',
     };
+    const nodes = el => [...el.children].filter(c => c.dataset && c.dataset.node);
+    const gapOf = el => parseFloat(getComputedStyle(el)[getComputedStyle(el).flexDirection.startsWith('row') ? 'columnGap' : 'rowGap']) || 0;
 
-    const sections = [...document.querySelectorAll('section[data-edit-section]')];
-    sections.forEach((el, i) => {
-      const info = data.sections[i];
-      const bar = document.createElement('div');
-      bar.className = 'sc-sectionbar';
-      bar.setAttribute('role', 'toolbar');
-      bar.setAttribute('aria-label', `Section ${i + 1}`);
+    // ---- component picker
+    const pickerEl = document.createElement('div');
+    pickerEl.className = 'sc-picker';
+    pickerEl.hidden = true;
+    pickerEl.setAttribute('role', 'dialog');
+    pickerEl.setAttribute('aria-label', 'Add component');
+    pickerEl.innerHTML = data.library.map(def => {
+      const [prop, values] = Object.entries(def.props || {})[0] || [null, [null]];
+      return `<div class="sc-picker__group"><p class="sc-picker__name">${def.name}</p>${values.map(v =>
+        `<button type="button" class="sc-picker__opt" data-component="${def.name}" data-prop="${prop || ''}" data-value="${v || ''}">${v || def.name}</button>`).join('')}</div>`;
+    }).join('');
+    document.body.appendChild(pickerEl);
+    let pickTarget = null;
+    function openPicker(anchor, target) {
+      pickTarget = target;
+      pickerEl.hidden = false;
+      const r = anchor.getBoundingClientRect();
+      const left = Math.max(16, Math.min(r.left + r.width / 2 - pickerEl.offsetWidth / 2, innerWidth - pickerEl.offsetWidth - 16));
+      pickerEl.style.left = `${left + scrollX}px`;
+      pickerEl.style.top = `${r.bottom + scrollY + 8}px`;
+      pickerEl.querySelector('button').focus();
+    }
+    pickerEl.addEventListener('click', e => {
+      const b = e.target.closest('.sc-picker__opt');
+      if (!b) return;
+      nodeAction({ action: 'add-component', path: pickTarget.path, index: pickTarget.index, component: b.dataset.component,
+        variant: b.dataset.prop ? { [b.dataset.prop]: b.dataset.value } : {} }, 'Adding component…');
+    });
+    document.addEventListener('click', e => {
+      if (!pickerEl.hidden && !e.target.closest('.sc-picker, .sc-ins__btn, .sc-canvas__btn')) pickerEl.hidden = true;
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') pickerEl.hidden = true; });
 
-      const def = info && libByName[info.component];
-      if (def) {
-        const name = document.createElement('span');
-        name.className = 'sc-sectionbar__name';
-        name.textContent = def.name;
-        bar.appendChild(name);
-        for (const [prop, values] of Object.entries(def.props || {})) {
-          const select = document.createElement('select');
-          select.className = 'sc-sectionbar__select';
-          select.setAttribute('aria-label', `${def.name} ${prop}`);
-          select.innerHTML = values.map(v => `<option${info.variant[prop] === v ? ' selected' : ''}>${v}</option>`).join('');
-          select.addEventListener('change', () =>
-            sectionAction({ action: 'variant', index: i, variant: { [prop]: select.value } }, 'Changing layout…'));
-          bar.appendChild(select);
+    // ---- insertion strip: zero-size, in the flow; opens on hover.
+    // `cancel` offsets the parent's flex gap so nothing moves until hover.
+    function strip(axis, label, onClick, cancel) {
+      const z = document.createElement('div');
+      z.className = `sc-ins sc-ins--${axis}`;
+      if (cancel) z.style.setProperty(cancel.prop, `-${cancel.px}px`);
+      z.innerHTML = `<span class="sc-ins__hit"></span><button type="button" class="sc-ins__btn"><span>${label}</span></button>`;
+      z.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onClick(e.currentTarget); });
+      return z;
+    }
+    const cancelFor = (parent, index, count, axis) => {
+      const px = gapOf(parent);
+      if (!px || !count) return null;
+      const start = axis === 'x' ? 'margin-left' : 'margin-top';
+      const end = axis === 'x' ? 'margin-right' : 'margin-bottom';
+      return { prop: index === 0 ? end : start, px };
+    };
+
+    // ---- toolbar shown on hover of the innermost section / column / component
+    function toolbar(el, cls, items) {
+      const tb = document.createElement('div');
+      tb.className = `sc-tb ${cls}`;
+      tb.setAttribute('role', 'toolbar');
+      for (const it of items) {
+        if (it.label) { const s = document.createElement('span'); s.className = 'sc-tb__label'; s.textContent = it.label; tb.appendChild(s); continue; }
+        if (it.select) { tb.appendChild(it.select); continue; }
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'sc-tb__btn'; b.innerHTML = it.icon; b.title = it.title;
+        b.setAttribute('aria-label', it.title); b.disabled = !!it.disabled;
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); it.run(); });
+        tb.appendChild(b);
+      }
+      el.appendChild(tb);
+    }
+    const siblings = el => nodes(el.parentElement);
+    const confirmDelete = (what, path) => { if (confirm(`Delete this ${what}? Any media in it is removed too.`)) nodeAction({ action: 'delete', path }, 'Deleting…'); };
+
+    // ---- sections: strips between them, toolbar on hover
+    const sections = [...document.querySelectorAll('main > section[data-kind="section"]')];
+    const top = document.querySelector('main > section[data-top]');
+    const addSectionStrip = index => strip('y', 'Add section', () => nodeAction({ action: 'add-section', index }, 'Adding section…'));
+    if (top) top.after(addSectionStrip(0));
+    sections.forEach((sec, i) => {
+      sec.after(addSectionStrip(i + 1));
+      const path = sec.dataset.node;
+      toolbar(sec, 'sc-tb--section', [
+        { label: 'Section' },
+        { icon: ICON.up, title: 'Move section up', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
+        { icon: ICON.down, title: 'Move section down', disabled: i === sections.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
+        { icon: ICON.dup, title: 'Duplicate section', run: () => nodeAction({ action: 'duplicate', path }, 'Duplicating…') },
+        { icon: ICON.del, title: 'Delete section', run: () => confirmDelete('section', path) },
+      ]);
+    });
+
+    // ---- containers & columns
+    document.querySelectorAll('[data-kind="container"], [data-kind="column"]').forEach(holder => {
+      const path = holder.dataset.node;
+      const kids = nodes(holder);
+      const isRow = kids.some(k => k.dataset.kind === 'column');
+
+      if (holder.dataset.kind === 'column') {
+        const sib = siblings(holder), i = sib.indexOf(holder);
+        toolbar(holder, 'sc-tb--column', [
+          { label: 'Column' },
+          { icon: ICON.left, title: 'Move column left', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
+          { icon: ICON.right, title: 'Move column right', disabled: i === sib.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
+          { icon: ICON.del, title: 'Delete column', run: () => confirmDelete('column', path) },
+        ]);
+      }
+
+      if (isRow) {
+        // Between and around columns: "Add column", opening sideways
+        for (let i = 0; i <= kids.length; i++) {
+          const z = strip('x', 'Add column', () => nodeAction({ action: 'add-column', path, index: i }, 'Adding column…'), cancelFor(holder, i, kids.length, 'x'));
+          if (i < kids.length) holder.insertBefore(z, kids[i]); else holder.appendChild(z);
+        }
+        return;
+      }
+
+      // A stack: "Add component" between components, "Add column" at the edges
+      if (!kids.length) {
+        const canvas = document.createElement('div');
+        canvas.className = 'sc-canvas';
+        canvas.innerHTML = '<button type="button" class="sc-canvas__btn">Add component</button>';
+        canvas.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openPicker(e.currentTarget, { path, index: 0 }); });
+        holder.appendChild(canvas);
+      } else {
+        for (let i = 0; i <= kids.length; i++) {
+          const z = strip('y', 'Add component', btn => openPicker(btn, { path, index: i }), cancelFor(holder, i, kids.length, 'y'));
+          if (i < kids.length) holder.insertBefore(z, kids[i]); else holder.appendChild(z);
         }
       }
-
-      const button = (html, label, onClick, disabled) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'sc-sectionbar__btn';
-        b.innerHTML = html;
-        b.title = label;
-        b.setAttribute('aria-label', label);
-        b.disabled = !!disabled;
-        b.addEventListener('click', onClick);
-        bar.appendChild(b);
-      };
-      button(icon.up, 'Move section up', () => sectionAction({ action: 'move', index: i, dir: -1 }, 'Moving…'), i === 0);
-      button(icon.down, 'Move section down', () => sectionAction({ action: 'move', index: i, dir: 1 }, 'Moving…'), i === sections.length - 1);
-      button(icon.dup, 'Duplicate section', () => sectionAction({ action: 'duplicate', index: i }, 'Duplicating…'));
-      button(icon.del, 'Delete section', () => {
-        if (confirm('Delete this section? Its images are removed too.')) sectionAction({ action: 'delete', index: i }, 'Deleting…');
-      });
-
-      el.appendChild(bar);
-    });
-
-    // "+ Add section" after the project header and after every section
-    function adder(index) {
-      const wrap = document.createElement('div');
-      wrap.className = 'sc-adder';
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'sc-adder__btn';
-      btn.textContent = '+ Add section';
-      btn.setAttribute('aria-expanded', 'false');
-      const menu = document.createElement('div');
-      menu.className = 'sc-adder__menu';
-      menu.hidden = true;
-      for (const def of data.library) {
-        const group = document.createElement('div');
-        group.className = 'sc-adder__group';
-        group.innerHTML = `<p class="sc-adder__title">${def.name}</p>`;
-        const [prop, values] = Object.entries(def.props || {})[0] || [null, [null]];
-        values.forEach(v => {
-          const opt = document.createElement('button');
-          opt.type = 'button';
-          opt.className = 'sc-adder__option';
-          opt.textContent = v || def.name;
-          opt.addEventListener('click', () => sectionAction(
-            { action: 'add', index, component: def.name, variant: prop ? { [prop]: v } : {} }, 'Adding section…'));
-          group.appendChild(opt);
-        });
-        menu.appendChild(group);
+      for (const side of ['start', 'end']) {
+        const edge = document.createElement('div');
+        edge.className = `sc-edge sc-edge--${side}`;
+        edge.innerHTML = '<button type="button" class="sc-edge__btn"><span>Add column</span></button>';
+        edge.querySelector('button').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); nodeAction({ action: 'add-column', path, side }, 'Adding column…'); });
+        holder.appendChild(edge);
       }
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const open = menu.hidden;
-        document.querySelectorAll('.sc-adder__menu').forEach(m => { m.hidden = true; });
-        document.querySelectorAll('.sc-adder__btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
-        menu.hidden = !open;
-        btn.setAttribute('aria-expanded', String(open));
-      });
-      wrap.append(btn, menu);
-      return wrap;
-    }
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.sc-adder')) document.querySelectorAll('.sc-adder__menu').forEach(m => { m.hidden = true; });
     });
 
-    const hero = document.querySelector('section[data-top]');
-    if (hero) hero.after(adder(0));
-    sections.forEach((el, i) => el.after(adder(i + 1)));
+    // ---- components: variant + move / duplicate / delete
+    document.querySelectorAll('[data-kind="instance"]').forEach(inst => {
+      const path = inst.dataset.node;
+      const def = data.library.find(d => d.name === inst.dataset.component);
+      const variant = JSON.parse(inst.dataset.variant || '{}');
+      const sib = siblings(inst), i = sib.indexOf(inst);
+      const items = [{ label: inst.dataset.component }];
+      for (const [prop, values] of Object.entries((def && def.props) || {})) {
+        const sel = document.createElement('select');
+        sel.className = 'sc-tb__select';
+        sel.setAttribute('aria-label', `${inst.dataset.component} ${prop}`);
+        sel.innerHTML = values.map(v => `<option${variant[prop] === v ? ' selected' : ''}>${v}</option>`).join('');
+        sel.addEventListener('click', e => e.stopPropagation());
+        sel.addEventListener('change', () => nodeAction({ action: 'variant', path, variant: { [prop]: sel.value } }, 'Changing layout…'));
+        items.push({ select: sel });
+      }
+      items.push(
+        { icon: ICON.up, title: 'Move up', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
+        { icon: ICON.down, title: 'Move down', disabled: i === sib.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
+        { icon: ICON.dup, title: 'Duplicate', run: () => nodeAction({ action: 'duplicate', path }, 'Duplicating…') },
+        { icon: ICON.del, title: 'Delete', run: () => confirmDelete('component', path) },
+      );
+      toolbar(inst, 'sc-tb--component', items);
+    });
   }
 
   // ------------------------------------------------------------ publish

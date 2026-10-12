@@ -9,7 +9,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
-const { ROOT, CONTENT, loadLibrary, findVariant, slotCount, newSection, findInstance,
+const { ROOT, CONTENT, loadLibrary, loadPresets, findVariant, slotCount,
   renderHome, renderProjects, renderProject, renderStyleguide } = require('./render');
 const { build } = require('./build');
 
@@ -162,26 +162,24 @@ async function saveText(req) {
   return { value: parent[key] };
 }
 
+// Only real media slots: the project cover, or <instance>.content.media.<n>
+// where n is a slot in the instance's current variant. → { list, key, slotName }
+function resolveMediaSlot(data, keys) {
+  if (keys.length === 1 && keys[0] === 'cover') return { list: data, key: 'cover', slotName: 'cover' };
+  const n = keys[keys.length - 1];
+  if (keys.length < 4 || keys.at(-3) !== 'content' || keys.at(-2) !== 'media' || !/^\d+$/.test(n)) throw new Error('Not a media slot');
+  const instance = walkKeys(data, keys.slice(0, -3));
+  const def = instance && instance.type === 'instance' && loadLibrary()[instance.component];
+  if (!def || Number(n) >= slotCount(findVariant(def, instance.variant).tree)) throw new Error('Not a media slot');
+  instance.content = instance.content || {};
+  instance.content.media = instance.content.media || [];
+  return { list: instance.content.media, key: Number(n), slotName: `s${Number(keys[1]) + 1}-${Number(n) + 1}` };
+}
+
 async function saveMedia(req, url) {
   const { doc, file, keys } = parseTarget(url.searchParams.get('target'));
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-
-  // Only real image slots: the project cover, or <instance>.content.media.<n>
-  // where n is a slot in the instance's current variant.
-  let list, key, slotName;
-  if (keys.length === 1 && keys[0] === 'cover') {
-    list = data; key = 'cover'; slotName = 'cover';
-  } else {
-    const n = keys[keys.length - 1];
-    if (keys.length < 4 || keys.at(-3) !== 'content' || keys.at(-2) !== 'media' || !/^\d+$/.test(n)) throw new Error('Not a media slot');
-    const instance = walkKeys(data, keys.slice(0, -3));
-    const def = instance && instance.type === 'instance' && loadLibrary()[instance.component];
-    if (!def || Number(n) >= slotCount(findVariant(def, instance.variant).tree)) throw new Error('Not a media slot');
-    instance.content = instance.content || {};
-    instance.content.media = instance.content.media || [];
-    list = instance.content.media; key = Number(n);
-    slotName = `s${Number(keys[1]) + 1}-${key + 1}`;
-  }
+  const { list, key, slotName } = resolveMediaSlot(data, keys);
 
   // What was uploaded: content type, with the file name as a fallback
   const type = (req.headers['content-type'] || '').split(';')[0].toLowerCase();
@@ -257,6 +255,47 @@ async function saveMedia(req, url) {
   return list[key];
 }
 
+// Poster for a video slot: a frame at ?t=<seconds>, or an uploaded image.
+async function savePoster(req, url) {
+  const { doc, file, keys } = parseTarget(url.searchParams.get('target'));
+  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { list, key, slotName } = resolveMediaSlot(data, keys);
+  const item = list[key];
+  if (!item || item.type !== 'video') throw new Error('Not a video slot');
+
+  const slug = doc.replace(/^projects\//, '');
+  const poster = `assets/uploads/${slug}/${slotName}-${Date.now().toString(36)}-poster.jpg`;
+  const out = path.join(ROOT, poster);
+  const type = (req.headers['content-type'] || '').split(';')[0].toLowerCase();
+
+  if (type.startsWith('image/')) {
+    // Custom poster image → JPEG at the video's size, cropped to fill
+    const tmp = path.join(os.tmpdir(), `sc-poster-${Date.now()}`);
+    await readToFile(req, tmp, 50 * 1024 * 1024);
+    try {
+      const { stdout } = await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height', '-of', 'csv=p=0', path.join(ROOT, item.src)]);
+      const [w, h] = stdout.trim().split(',').map(Number);
+      await run('ffmpeg', ['-y', '-loglevel', 'error', '-i', tmp,
+        '-vf', `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`,
+        '-frames:v', '1', '-q:v', '3', out]);
+    } finally { fs.rmSync(tmp, { force: true }); }
+  } else {
+    // A frame from the video itself
+    const t = Math.max(0, Number(url.searchParams.get('t')) || 0);
+    await run('ffmpeg', ['-y', '-loglevel', 'error', '-ss', t.toFixed(3), '-i', path.join(ROOT, item.src),
+      '-frames:v', '1', '-q:v', '3', out]);
+    if (!fs.existsSync(out)) throw new Error('Couldn’t grab a frame at that time');
+  }
+
+  const prev = item.poster;
+  item.poster = poster;
+  writeJSON(file, data);
+  cleanupUploads([prev]);
+  build();
+  return { poster };
+}
+
 // Frames in a GIF (1 = still image)
 async function frameCount(file) {
   try {
@@ -266,16 +305,36 @@ async function frameCount(file) {
   } catch { return 1; }
 }
 
-// Section controls: add / move / duplicate / delete / variant
-async function saveSection(req) {
+// Structure edits on a project's page tree. `path` is a node path like
+// "sections.2.children.0.children.1" (as tagged by the renderer in edit mode).
+//   add-section   { index }                         blank Section + Container
+//   add-component { path: container|column, index, component, variant }
+//   add-column    { path: container|column, index } or { path, side: start|end }
+//   delete | duplicate { path }    move { path, dir: -1|1 }    variant { path, variant }
+async function saveNode(req) {
   const body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8'));
+  if (!/^projects\/[a-z0-9-]+$/.test(body.doc || '')) throw new Error('Structure edits are on project pages');
   const { file } = parseTarget(`${body.doc}#sections`);
-  if (!/^projects\//.test(body.doc)) throw new Error('Sections live on project pages');
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const sections = data.sections = data.sections || [];
-  const i = Number(body.index);
+  data.sections = data.sections || [];
   const lib = loadLibrary();
-  const validVariant = (def, variant) => {
+  const { section: sectionPreset, container: containerPreset } = loadPresets();
+  let removed = [];
+
+  const keysOf = p => {
+    const keys = String(p || '').split('.');
+    if (keys[0] !== 'sections' || keys.some(k => !/^(sections|children|\d+)$/.test(k))) throw new Error('Bad path');
+    return keys;
+  };
+  const nodeAt = p => walkKeys(data, keysOf(p));
+  const parentOf = p => {
+    const keys = keysOf(p);
+    const list = walkKeys(data, keys.slice(0, -1));
+    const i = Number(keys.at(-1));
+    if (!Array.isArray(list) || !(i in list)) throw new Error('Path not found');
+    return { list, i };
+  };
+  const variantFor = (def, variant) => {
     const out = {};
     for (const [prop, values] of Object.entries(def.props || {})) {
       const v = variant && variant[prop];
@@ -284,39 +343,77 @@ async function saveSection(req) {
     }
     return out;
   };
-  const inRange = (n, max) => Number.isInteger(n) && n >= 0 && n < max;
-  let removed = [];
+  const isHolder = n => n && (n.type === 'container' || n.type === 'column');
+  const hasColumns = n => (n.children || []).some(c => c.type === 'column');
+  const newColumn = children => ({ type: 'column', width: 'fill', gap: '$gap-large', children: children || [] });
+  const clampIndex = (i, len) => { const n = Number(i); if (!Number.isInteger(n) || n < 0 || n > len) throw new Error('Bad position'); return n; };
 
   switch (body.action) {
-    case 'add': {
-      if (!Number.isInteger(i) || i < 0 || i > sections.length) throw new Error('Bad position');
+    case 'add-section': {
+      const at = clampIndex(body.index, data.sections.length);
+      data.sections.splice(at, 0, { ...sectionPreset, children: [{ ...containerPreset, children: [] }] });
+      break;
+    }
+    case 'add-component': {
+      const holder = nodeAt(body.path);
+      if (!isHolder(holder)) throw new Error('Components go in a container or column');
+      if (hasColumns(holder)) throw new Error('This container has columns — add the component inside a column');
       const def = lib[body.component];
       if (!def) throw new Error('Unknown component');
-      sections.splice(i, 0, newSection(def.name, validVariant(def, body.variant)));
+      holder.children = holder.children || [];
+      const at = clampIndex(body.index, holder.children.length);
+      holder.children.splice(at, 0, { type: 'instance', component: def.name, variant: variantFor(def, body.variant), content: { media: [] } });
+      break;
+    }
+    case 'add-column': {
+      const holder = nodeAt(body.path);
+      if (!isHolder(holder)) throw new Error('Columns go in a container or column');
+      holder.children = holder.children || [];
+      if (hasColumns(holder)) {
+        holder.children.splice(clampIndex(body.index, holder.children.length), 0, newColumn());
+      } else {
+        // Turn a stack into two columns: what's there now + an empty one
+        const existing = newColumn(holder.children);
+        holder.children = body.side === 'start' ? [newColumn(), existing] : [existing, newColumn()];
+        holder.direction = 'row';
+        holder.gap = holder.gap || '$gap-large';
+        holder.mobile = 'cols';
+      }
+      break;
+    }
+    case 'delete': {
+      const { list, i } = parentOf(body.path);
+      removed = collectSrcs(list.splice(i, 1)[0]);
+      // A row left with a single column goes back to a plain stack
+      const parentKeys = keysOf(body.path).slice(0, -2);
+      if (parentKeys.length > 1) {
+        const parent = walkKeys(data, parentKeys);
+        if (isHolder(parent) && hasColumns(parent) && parent.children.length === 1) {
+          parent.children = parent.children[0].children || [];
+          delete parent.direction; delete parent.mobile;
+          if (parent.gap === '$gap-large' && parent.type === 'container') delete parent.gap;
+        }
+      }
+      break;
+    }
+    case 'duplicate': {
+      const { list, i } = parentOf(body.path);
+      list.splice(i + 1, 0, structuredClone(list[i]));
       break;
     }
     case 'move': {
-      const to = i + (body.dir < 0 ? -1 : 1);
-      if (!inRange(i, sections.length) || !inRange(to, sections.length)) throw new Error('Can’t move further');
-      [sections[i], sections[to]] = [sections[to], sections[i]];
+      const { list, i } = parentOf(body.path);
+      const to = i + (Number(body.dir) < 0 ? -1 : 1);
+      if (to < 0 || to >= list.length) throw new Error('Can’t move further');
+      [list[i], list[to]] = [list[to], list[i]];
       break;
     }
-    case 'duplicate':
-      if (!inRange(i, sections.length)) throw new Error('Bad section');
-      sections.splice(i + 1, 0, structuredClone(sections[i]));
-      break;
-    case 'delete':
-      if (!inRange(i, sections.length)) throw new Error('Bad section');
-      removed = collectSrcs(sections.splice(i, 1)[0]);
-      break;
     case 'variant': {
-      if (!inRange(i, sections.length)) throw new Error('Bad section');
-      const hit = findInstance(sections[i]);
-      const def = hit && lib[hit.node.component];
-      if (!def) throw new Error('No component in this section');
-      // Content is kept as-is, so images beyond the new layout's slots come back
-      // if you switch back to a bigger layout.
-      hit.node.variant = validVariant(def, { ...hit.node.variant, ...body.variant });
+      const node = nodeAt(body.path);
+      const def = node && node.type === 'instance' && lib[node.component];
+      if (!def) throw new Error('Not a component');
+      // Content is kept, so media beyond the new layout's slots come back later
+      node.variant = variantFor(def, { ...node.variant, ...body.variant });
       break;
     }
     default:
@@ -326,7 +423,7 @@ async function saveSection(req) {
   writeJSON(file, data);
   cleanupUploads(removed);
   build();
-  return { ok: true, count: sections.length };
+  return { ok: true };
 }
 
 async function publish() {
@@ -384,7 +481,8 @@ const server = http.createServer(async (req, res) => {
       }
       if (url.pathname === '/__api/text') return send(res, 200, await saveText(req));
       if (url.pathname === '/__api/media') return send(res, 200, await saveMedia(req, url));
-      if (url.pathname === '/__api/section') return send(res, 200, await saveSection(req));
+      if (url.pathname === '/__api/poster') return send(res, 200, await savePoster(req, url));
+      if (url.pathname === '/__api/node') return send(res, 200, await saveNode(req));
       if (url.pathname === '/__api/publish') return send(res, 200, await publish());
       return send(res, 404, { error: 'Unknown endpoint' });
     }

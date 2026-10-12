@@ -12,9 +12,21 @@ node tools/edit.js
 Open http://localhost:4000 and click around:
 
 - **Text** — click any title, tag, summary or headline and type. Enter saves, Esc cancels.
-- **Images** — hover an image and click, or drop a file onto it. Uploads are
-  resized to 2400px max (JPEG, or PNG if you upload a PNG) and saved to
-  `assets/uploads/<project>/`. Replacing an image deletes the old upload.
+- **Images & video** — hover a media slot and click, or drop a file onto it.
+  Saved to `assets/uploads/<project>/`; replacing media deletes the old files.
+
+  | You upload | You get |
+  | --- | --- |
+  | Video — MP4, MOV, WebM, M4V, MKV, AVI… | MP4 (H.264/AAC), long edge ≤ 1920px, streams instantly, plus a poster frame. Plays autoplay/muted/looping/inline |
+  | Animated GIF | Looping MP4 (much smaller) + poster |
+  | JPEG, HEIC/HEIF, TIFF, BMP | JPEG, long edge ≤ 2400px |
+  | PNG | PNG, long edge ≤ 2400px |
+  | WebP, AVIF, SVG, still GIF | Kept exactly as uploaded |
+
+  Videos are converted with **ffmpeg** (`brew install ffmpeg`). A video that's
+  still over 95 MB after converting is refused — GitHub won't accept files over
+  100 MB — so trim long clips first. On the site, videos pause for visitors
+  with "reduce motion" on, and only play while on screen (`js/media.js`).
 - **Sections** (project pages) — hover a section for its toolbar: switch the
   Gallery **Layout**, move up/down, duplicate, delete. **+ Add section** between
   sections inserts a new Gallery in any layout. Switching layouts keeps every
@@ -134,4 +146,4 @@ editing a project's header edits the project itself, and the change shows up
 on its Home tile, in the Projects list and in the nav. With the editor running, http://localhost:4000/__styleguide
 shows every block and every component variant.
 
-Requires Node 18+ and macOS (`sips` does the image resizing).
+Requires Node 18+, macOS (`sips` resizes images) and ffmpeg (video).

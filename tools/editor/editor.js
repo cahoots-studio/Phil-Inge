@@ -1,6 +1,8 @@
 // Edit mode UI — only loaded by tools/edit.js, never on the published site.
 (function () {
-  const ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,image/tiff';
+  // Images and video. The server converts as needed (video → MP4/H.264).
+  const ACCEPT = 'image/*,video/*,.heic,.heif,.avif,.webp,.svg,.mov,.m4v,.mkv,.webm';
+  const MEDIA_EXT = /\.(jpe?g|png|webp|avif|gif|heic|heif|tiff?|bmp|svg|mp4|m4v|mov|webm|mkv|avi|3gp|ogv)$/i;
 
   // ------------------------------------------------------------ status bar
   const bar = document.createElement('div');
@@ -86,20 +88,35 @@
   });
 
   async function upload(slot, file) {
-    if (!file.type.startsWith('image/')) { setStatus('That isn’t an image', 'error'); return; }
+    const isMedia = /^(image|video)\//.test(file.type) || MEDIA_EXT.test(file.name);
+    if (!isMedia) { setStatus('That isn’t an image or video', 'error'); return; }
+    const isVideo = file.type.startsWith('video/') || /\.(mp4|m4v|mov|webm|mkv|avi|3gp|ogv)$/i.test(file.name) || file.type === 'image/gif';
     slot.classList.add('is-uploading');
-    start(`Uploading ${file.name}…`);
+    start(isVideo ? `Uploading and converting ${file.name}… (videos can take a minute)` : `Uploading ${file.name}…`);
     try {
       const res = await api(`/__api/media?target=${encodeURIComponent(slot.dataset.editMedia)}`, {
-        headers: { 'Content-Type': file.type },
+        headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-Filename': encodeURIComponent(file.name) },
         body: file,
       });
       const prefix = location.pathname.startsWith('/projects/') ? '../' : '';
-      const src = `${prefix}${res.src}`;
-      // Update every slot bound to the same image (e.g. a cover shown twice)
+      // Update every slot bound to the same media (e.g. a cover shown twice)
       document.querySelectorAll(`[data-edit-media="${CSS.escape(slot.dataset.editMedia)}"]`).forEach(s => {
-        const img = s.querySelector('img');
-        if (img) { img.removeAttribute('loading'); img.src = src; }
+        const old = s.querySelector('img, video');
+        let el;
+        if (res.type === 'video') {
+          el = document.createElement('video');
+          Object.assign(el, { autoplay: true, muted: true, loop: true, playsInline: true });
+          el.setAttribute('playsinline', '');
+          if (res.poster) el.poster = prefix + res.poster;
+          el.setAttribute('aria-hidden', 'true');
+        } else {
+          el = document.createElement('img');
+          el.alt = (old && old.getAttribute('alt')) || '';
+        }
+        if (res.type === 'video') el.setAttribute('muted', '');
+        el.src = prefix + res.src;
+        if (old) old.replaceWith(el); else s.prepend(el);
+        if (res.type === 'video') { const p = el.play(); if (p && p.catch) p.catch(() => {}); }
         s.removeAttribute('data-empty');
       });
       done();
@@ -117,7 +134,7 @@
     btn.innerHTML = '<span class="sc-slot__label"></span>';
     const label = btn.firstChild;
     const refreshLabel = () => {
-      label.textContent = slot.hasAttribute('data-empty') ? 'Click or drop to upload' : 'Replace image';
+      label.textContent = slot.hasAttribute('data-empty') ? 'Click or drop image or video' : 'Replace media';
     };
     refreshLabel();
     new MutationObserver(refreshLabel).observe(slot, { attributes: true, attributeFilter: ['data-empty'] });

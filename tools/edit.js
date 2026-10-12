@@ -14,14 +14,16 @@ const { ROOT, CONTENT, loadLibrary, findVariant, slotCount, newSection, findInst
 const { build } = require('./build');
 
 const PORT = Number(process.env.PORT) || 4000;
-const MAX_UPLOAD = 60 * 1024 * 1024;
+const MAX_UPLOAD = 2 * 1024 * 1024 * 1024; // 2 GB — phone videos are big; output is much smaller
+const MAX_VIDEO_OUT = 95 * 1024 * 1024;   // GitHub rejects files over 100 MB
 const MAX_EDGE = 2400;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp', '.gif': 'image/gif', '.ico': 'image/x-icon',
+  '.webp': 'image/webp', '.gif': 'image/gif', '.ico': 'image/x-icon', '.avif': 'image/avif',
+  '.mp4': 'video/mp4', '.m4v': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime',
 };
 
 // ---------------------------------------------------------------- helpers
@@ -45,6 +47,21 @@ function readBody(req, limit) {
       chunks.push(c);
     });
     req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+function readToFile(req, dest, limit) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const out = fs.createWriteStream(dest);
+    req.on('data', c => {
+      size += c.length;
+      if (size > limit) { req.destroy(); out.destroy(); reject(new Error('Upload too large (2 GB max)')); }
+    });
+    req.pipe(out);
+    out.on('finish', () => resolve(size));
+    out.on('error', reject);
     req.on('error', reject);
   });
 }
@@ -156,51 +173,97 @@ async function saveMedia(req, url) {
     list = data; key = 'cover'; slotName = 'cover';
   } else {
     const n = keys[keys.length - 1];
-    if (keys.length < 4 || keys.at(-3) !== 'content' || keys.at(-2) !== 'media' || !/^\d+$/.test(n)) throw new Error('Not an image slot');
+    if (keys.length < 4 || keys.at(-3) !== 'content' || keys.at(-2) !== 'media' || !/^\d+$/.test(n)) throw new Error('Not a media slot');
     const instance = walkKeys(data, keys.slice(0, -3));
     const def = instance && instance.type === 'instance' && loadLibrary()[instance.component];
-    if (!def || Number(n) >= slotCount(findVariant(def, instance.variant).tree)) throw new Error('Not an image slot');
+    if (!def || Number(n) >= slotCount(findVariant(def, instance.variant).tree)) throw new Error('Not a media slot');
     instance.content = instance.content || {};
     instance.content.media = instance.content.media || [];
     list = instance.content.media; key = Number(n);
     slotName = `s${Number(keys[1]) + 1}-${key + 1}`;
   }
 
-  const type = (req.headers['content-type'] || '').split(';')[0];
-  const inExt = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp',
-    'image/heic': '.heic', 'image/heif': '.heif', 'image/gif': '.gif', 'image/tiff': '.tiff' }[type];
-  if (!inExt) throw new Error(`Unsupported image type: ${type || 'unknown'}`);
+  // What was uploaded: content type, with the file name as a fallback
+  const type = (req.headers['content-type'] || '').split(';')[0].toLowerCase();
+  const origName = decodeURIComponent(req.headers['x-filename'] || '');
+  const ext = path.extname(origName).toLowerCase();
+  const VIDEO_EXT = ['.mp4', '.m4v', '.mov', '.webm', '.mkv', '.avi', '.3gp', '.ogv'];
+  const kind = type.startsWith('video/') || VIDEO_EXT.includes(ext) ? 'video'
+    : type.startsWith('image/') || ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.heic', '.heif', '.tif', '.tiff', '.bmp', '.svg'].includes(ext) ? 'image'
+    : null;
+  if (!kind) throw new Error(`Unsupported file: ${origName || type || 'unknown type'}`);
 
-  const body = await readBody(req, MAX_UPLOAD);
-  const tmp = path.join(os.tmpdir(), `sc-upload-${Date.now()}${inExt}`);
-  fs.writeFileSync(tmp, body);
+  const tmp = path.join(os.tmpdir(), `sc-upload-${Date.now()}${ext || ''}`);
+  await readToFile(req, tmp, MAX_UPLOAD);
 
-  const outExt = inExt === '.png' ? '.png' : '.jpg';
   const slug = doc.replace(/^projects\//, '');
-  const name = `${slotName}-${Date.now().toString(36)}${outExt}`;
+  const stamp = Date.now().toString(36);
   const relDir = `assets/uploads/${slug}`;
   fs.mkdirSync(path.join(ROOT, relDir), { recursive: true });
-  const dest = path.join(ROOT, relDir, name);
+  const abs = rel => path.join(ROOT, rel);
+  let item;
 
   try {
-    const { stdout } = await run('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', tmp]);
-    const dims = [...stdout.matchAll(/pixel(?:Width|Height):\s*(\d+)/g)].map(m => Number(m[1]));
-    const args = ['-s', 'format', outExt === '.png' ? 'png' : 'jpeg'];
-    if (outExt === '.jpg') args.push('-s', 'formatOptions', '82');
-    if (Math.max(...dims) > MAX_EDGE) args.push('-Z', String(MAX_EDGE)); // never upscale
-    await run('sips', [...args, tmp, '--out', dest]);
+    const isGif = type === 'image/gif' || ext === '.gif';
+    const animatedGif = isGif && await frameCount(tmp) > 1;
+
+    if (kind === 'video' || animatedGif) {
+      // Any video (and animated GIFs) → MP4 / H.264, long edge ≤ 1920, streams
+      // before it's fully loaded (+faststart), plus a poster frame.
+      const src = `${relDir}/${slotName}-${stamp}.mp4`;
+      const poster = `${relDir}/${slotName}-${stamp}-poster.jpg`;
+      const fit = "scale='if(gt(iw,ih),min(1920,iw),-2)':'if(gt(iw,ih),-2,min(1920,ih))'";
+      await run('ffmpeg', ['-y', '-loglevel', 'error', '-i', tmp,
+        '-map', '0:v:0', '-map', '0:a:0?',
+        '-vf', `${fit},format=yuv420p`,
+        '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-profile:v', 'high',
+        '-c:a', 'aac', '-b:a', '128k',
+        '-movflags', '+faststart', abs(src)]);
+      await run('ffmpeg', ['-y', '-loglevel', 'error', '-i', abs(src), '-frames:v', '1', '-q:v', '3', abs(poster)]);
+      const size = fs.statSync(abs(src)).size;
+      if (size > MAX_VIDEO_OUT) {
+        fs.rmSync(abs(src), { force: true }); fs.rmSync(abs(poster), { force: true });
+        throw new Error(`Video is ${Math.round(size / 1048576)} MB after converting — over GitHub's 100 MB limit. Trim it or upload a shorter clip.`);
+      }
+      item = { type: 'video', src, poster };
+    } else if (['.webp', '.avif', '.svg'].includes(ext) || ['image/webp', 'image/avif', 'image/svg+xml'].includes(type) || isGif) {
+      // Already web formats: keep exactly as uploaded
+      const keepExt = ext || { 'image/webp': '.webp', 'image/avif': '.avif', 'image/svg+xml': '.svg', 'image/gif': '.gif' }[type];
+      const src = `${relDir}/${slotName}-${stamp}${keepExt}`;
+      fs.copyFileSync(tmp, abs(src));
+      item = { src };
+    } else {
+      // JPEG / HEIC / TIFF / BMP → JPEG, PNG stays PNG; long edge ≤ 2400, never upscaled
+      const outExt = type === 'image/png' || ext === '.png' ? '.png' : '.jpg';
+      const src = `${relDir}/${slotName}-${stamp}${outExt}`;
+      const { stdout } = await run('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', tmp]);
+      const dims = [...stdout.matchAll(/pixel(?:Width|Height):\s*(\d+)/g)].map(m => Number(m[1]));
+      const args = ['-s', 'format', outExt === '.png' ? 'png' : 'jpeg'];
+      if (outExt === '.jpg') args.push('-s', 'formatOptions', '82');
+      if (Math.max(...dims) > MAX_EDGE) args.push('-Z', String(MAX_EDGE));
+      await run('sips', [...args, tmp, '--out', abs(src)]);
+      item = { src };
+    }
   } finally {
     fs.rmSync(tmp, { force: true });
   }
 
-  const prev = list[key] && list[key].src;
-  const src = `${relDir}/${name}`;
+  const prev = list[key] || {};
   if (Array.isArray(list)) while (list.length < key) list.push(null);
-  list[key] = { src, alt: (list[key] && list[key].alt) || '' };
+  list[key] = { ...item, alt: prev.alt || '' };
   writeJSON(file, data);
-  cleanupUploads([prev]);
+  cleanupUploads([prev.src, prev.poster]);
   build();
-  return { src };
+  return list[key];
+}
+
+// Frames in a GIF (1 = still image)
+async function frameCount(file) {
+  try {
+    const { stdout } = await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-count_packets',
+      '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', file]);
+    return Number(stdout.trim()) || 1;
+  } catch { return 1; }
 }
 
 // Section controls: add / move / duplicate / delete / variant
@@ -289,13 +352,23 @@ function renderRoute(pathname) {
   return undefined;
 }
 
-function serveStatic(pathname, res) {
+function serveStatic(pathname, res, range) {
   const rel = decodeURIComponent(pathname).replace(/^\/+/, '');
   const file = path.resolve(ROOT, rel);
   if (!file.startsWith(ROOT + path.sep) || rel.split('/').some(s => s.startsWith('.'))) return send(res, 403, 'Forbidden', 'text/plain');
   fs.stat(file, (err, st) => {
     if (err || !st.isFile()) return send(res, 404, 'Not found', 'text/plain');
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+    const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+    // Byte ranges: Safari won't play video without them
+    const m = /^bytes=(\d*)-(\d*)$/.exec(range || '');
+    if (m) {
+      const start = m[1] ? Number(m[1]) : Math.max(0, st.size - Number(m[2]));
+      const end = m[1] && m[2] ? Math.min(Number(m[2]), st.size - 1) : st.size - 1;
+      if (start > end || start >= st.size) { res.writeHead(416, { 'Content-Range': `bytes */${st.size}` }); return res.end(); }
+      res.writeHead(206, { 'Content-Type': type, 'Content-Length': end - start + 1, 'Content-Range': `bytes ${start}-${end}/${st.size}`, 'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store' });
+      return fs.createReadStream(file, { start, end }).pipe(res);
+    }
+    res.writeHead(200, { 'Content-Type': type, 'Content-Length': st.size, 'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store' });
     fs.createReadStream(file).pipe(res);
   });
 }
@@ -319,7 +392,7 @@ const server = http.createServer(async (req, res) => {
     if (page === 'redirect') { res.writeHead(301, { Location: '/projects/' }); return res.end(); }
     if (page === null) return send(res, 404, 'No such project', 'text/plain');
     if (page) return send(res, 200, page, MIME['.html']);
-    return serveStatic(url.pathname, res);
+    return serveStatic(url.pathname, res, req.headers.range);
   } catch (err) {
     console.error(err.stderr || err.message);
     return send(res, 400, { error: (err.stderr || err.message || 'Error').toString().trim() });

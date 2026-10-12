@@ -50,7 +50,7 @@
 .sc-slot__button:focus-visible .sc-slot__label { opacity: 1; transform: none; }
 
 /* Empty slots: always show the prompt over a dashed frame */
-[data-edit-media][data-empty] img { opacity: 0.35; filter: grayscale(1); }
+[data-edit-media][data-empty] :is(img, video) { opacity: 0.35; filter: grayscale(1); }
 [data-edit-media][data-empty] .sc-slot__button {
   outline: 2px dashed var(--color-electric-violet);
   outline-offset: -8px;
@@ -67,7 +67,7 @@
 [data-edit-media].is-uploading .sc-slot__label::after { content: '…'; }
 
 /* Hover zoom on tiles fights with the overlay */
-[data-edit-media] img { transform: none !important; }
+[data-edit-media] :is(img, video) { transform: none !important; }
 
 /* ---------------------------------------------------------- edit bar */
 .sc-editbar {

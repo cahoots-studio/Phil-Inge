@@ -105,7 +105,15 @@ function ctx(opts, prefix) {
   };
 }
 
+// A media slot's content: an image, or a video that plays like a moving image
+// (autoplay, muted, looping, inline). Videos are MP4/H.264 with a poster frame,
+// made by the editor on upload. js/media.js pauses them for reduced motion.
 function img(c, media, { lazy = true } = {}) {
+  if (media && media.src && media.type === 'video') {
+    const label = media.alt ? ` aria-label="${esc(media.alt)}"` : ' aria-hidden="true"';
+    const poster = media.poster ? ` poster="${c.p}${esc(media.poster)}"` : '';
+    return `<video src="${c.p}${esc(media.src)}"${poster} autoplay muted loop playsinline preload="${lazy ? 'metadata' : 'auto'}"${label}></video>`;
+  }
   const src = media && media.src ? media.src : PLACEHOLDER;
   return `<img src="${c.p}${esc(src)}" alt="${esc(media && media.alt)}"${lazy ? ' loading="lazy"' : ''}>`;
 }
@@ -249,7 +257,8 @@ function footer(c) {
     </div>
   </footer>
 
-  <script src="${c.p}js/nav.js" defer></script>${c.edit ? `
+  <script src="${c.p}js/nav.js" defer></script>
+  <script src="${c.p}js/media.js" defer></script>${c.edit ? `
   <script src="/tools/editor/editor.js" defer></script>` : ''}
 </body>
 </html>

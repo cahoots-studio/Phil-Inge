@@ -139,8 +139,15 @@ address { font-style: normal; }
 .site-header__inner {
   position: absolute;
   inset: 0 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  /* Expanded layout: the logo defines its own column (contact + socials beneath it);
+     the navigation fills the remaining width. Rows: bar, panel space, rule. */
+  grid-template-columns:
+    [full-start] minmax(0, 1fr)
+    [logo-start] var(--nav-logo-w) [logo-end] var(--gap-huge)
+    [nav-start] minmax(0, calc(var(--container-max) - var(--nav-logo-w) - var(--gap-huge))) [nav-end]
+    minmax(0, 1fr) [full-end];
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: var(--header-h);
   padding: var(--nav-pad-y) var(--nav-pad-x) 0;
   overflow: hidden;
@@ -151,19 +158,21 @@ address { font-style: normal; }
 .site-header.is-open .site-header__inner { height: var(--nav-open-h); }
 
 .site-header__bar {
+  grid-area: 1 / logo-start / 2 / nav-end;
+  position: relative;
+  z-index: 1;
+  pointer-events: none; /* the nav column sits beneath it when open */
   display: flex;
-  flex: none;
   align-items: center;
   justify-content: space-between;
   gap: var(--gap-small);
   width: 100%;
-  max-width: var(--container-max);
   min-height: var(--nav-row);
-  margin: 0 auto var(--nav-pad-y);
+  margin-bottom: var(--nav-pad-y);
 }
 
 .site-header__rule {
-  flex: none;
+  grid-area: 3 / logo-start / 4 / nav-end;
   width: 100%;
   max-width: var(--container-max);
   height: 1px;
@@ -173,6 +182,8 @@ address { font-style: normal; }
 }
 
 .site-logo { display: block; flex-shrink: 0; }
+.site-logo,
+.site-header__toggle { pointer-events: auto; }
 .site-logo img { display: block; width: var(--nav-logo-w); max-width: 100%; height: auto; }
 
 /* Collapsed: the section names, as a quiet label for the hover target */
@@ -187,23 +198,28 @@ address { font-style: normal; }
 .site-header.is-open .site-header__peek { opacity: 0; }
 
 /* Expanded panel: four swiss columns + contact and affiliates */
-.site-header__panel {
+.site-header__panel,
+.site-header__aside {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--gap-large);
-  width: 100%;
   min-height: 0;
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: var(--pad-block-tiny) 0 var(--nav-pad-y);
+  padding-bottom: var(--nav-pad-y);
   overflow: hidden;
   visibility: hidden;
   opacity: 0;
   transform: translateY(-12px);
   transition: opacity 0.2s ease, transform 0.45s var(--nav-ease), visibility 0s 0.45s;
 }
-.site-header.is-open .site-header__panel {
+.site-header__panel { grid-area: 1 / nav-start / 3 / nav-end; }
+.site-header__aside {
+  grid-area: 2 / logo-start / 3 / logo-end;
+  justify-content: flex-end;
+  gap: var(--gap-medium);
+  font-size: var(--size-text-small);
+  line-height: normal;
+}
+.site-header.is-open :is(.site-header__panel, .site-header__aside) {
   visibility: visible;
   opacity: 1;
   transform: none;
@@ -211,6 +227,7 @@ address { font-style: normal; }
 }
 
 .site-nav {
+  container-type: inline-size;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--gap-large);
@@ -233,12 +250,17 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   gap: var(--gap-tiny);
 }
 
-/* Magnify: the hovered link grows to full size (Text/Huge); its neighbours grow
-   less the further away they are. Rest size is Text/Large. */
+/* Magnify: the hovered link grows to full size; its neighbours grow less the further
+   away they are. Sizes scale with the nav column (2.6% rest, 4% full of its width),
+   capped at Text/Large and Text/Huge. */
 .site-nav__links li { --s: 0; }
+.site-nav {
+  --mega-rest: min(var(--size-text-large), 2.6cqi);
+  --mega-full: min(var(--size-text-huge), 4cqi);
+}
 .site-nav .nav-link {
   padding: 0;
-  font-size: calc(var(--size-text-large) + (var(--size-text-huge) - var(--size-text-large)) * var(--s));
+  font-size: calc(var(--mega-rest) + (var(--mega-full) - var(--mega-rest)) * var(--s));
   font-weight: 500;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -255,15 +277,6 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   .site-nav__links li:is(:hover, :focus-within) + li + li { --s: 0.25; }
 }
 
-.site-header__extra {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--gap-medium) var(--gap-huge);
-  margin-top: auto;
-  font-size: var(--size-text-small);
-  line-height: normal;
-}
 .site-header__contact {
   display: flex;
   flex-direction: column;
@@ -276,13 +289,16 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .site-header__social img { width: 20px; height: 20px; filter: brightness(0); } /* icons are white */
 .site-header__affiliates {
   display: flex;
+  align-self: flex-end;
   align-items: baseline;
   gap: var(--gap-medium);
-  margin-left: auto;
+  margin-top: auto;
+  font-size: var(--size-text-small);
+  line-height: normal;
 }
 .site-header__affiliates ul { display: flex; gap: var(--gap-medium); }
 .site-header__label { font-weight: 600; }
-.site-header__extra a:not(:has(img)):hover { text-decoration: underline; text-underline-offset: 3px; }
+:is(.site-header__affiliates, .site-header__contact) a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Navigation Link component: Default / Hover / Current / Focus */
 .nav-link {
@@ -355,10 +371,17 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
     height: auto;
     overflow-y: auto;
   }
-  .site-header__panel { gap: var(--gap-huge); overflow: visible; }
-  .site-nav { grid-template-columns: minmax(0, 1fr); gap: var(--gap-huge); }
-  .site-header__extra { flex-direction: column; align-items: flex-start; margin-top: 0; }
-  .site-header__affiliates { margin-left: 0; }
+  .site-header__inner { display: flex; flex-direction: column; }
+  .site-header__panel { gap: var(--gap-huge); }
+  .site-header__panel,
+  .site-header__aside { flex: none; overflow: visible; }
+  .site-nav {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gap-huge);
+    --mega-rest: var(--size-text-large);
+    --mega-full: var(--size-text-large);
+  }
+  .site-header__affiliates { align-self: flex-start; margin-top: 0; }
 }
 
 .nav-locked { overflow: hidden; }

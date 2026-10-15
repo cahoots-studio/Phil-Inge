@@ -187,7 +187,7 @@ const AFFILIATES = [
 function header(c, projects, currentSlug) {
   const cols = navColumns(c, projects, currentSlug);
   const social = SOCIAL.map(s =>
-    `            <li><a href="${s.href}" aria-label="${s.name}"><img src="${c.p}assets/icons/${s.icon}.svg" width="20" height="20" alt=""></a></li>`).join('\n');
+    `          <li><a href="${s.href}" aria-label="${s.name}"><img src="${c.p}assets/icons/${s.icon}.svg" width="20" height="20" alt=""></a></li>`).join('\n');
   return `  <header class="site-header" data-sc-scheme="scheme-1">
     <div class="site-header__inner">
       <div class="site-header__bar">
@@ -203,22 +203,22 @@ function header(c, projects, currentSlug) {
         <nav class="site-nav" id="site-nav" aria-label="Main">
 ${navList(cols, 'site-nav', '          ')}
         </nav>
-        <div class="site-header__extra">
-          <address class="site-header__contact">
-            <span>c/o Cahoots Studio</span>
-            <span>Denver, CO 80202</span>
-            <a href="https://www.cahoots.studio">www.cahoots.studio</a>
-          </address>
-          <ul class="site-header__social" aria-label="Social">
-${social}
+        <div class="site-header__affiliates">
+          <p class="site-header__label">Affiliates</p>
+          <ul>
+${AFFILIATES.map(a => `            <li><a href="${a.href}">${esc(a.name)}</a></li>`).join('\n')}
           </ul>
-          <div class="site-header__affiliates">
-            <p class="site-header__label">Affiliates</p>
-            <ul>
-${AFFILIATES.map(a => `              <li><a href="${a.href}">${esc(a.name)}</a></li>`).join('\n')}
-            </ul>
-          </div>
         </div>
+      </div>
+      <div class="site-header__aside">
+        <address class="site-header__contact">
+          <span>c/o Cahoots Studio</span>
+          <span>Denver, CO 80202</span>
+          <a href="https://www.cahoots.studio">www.cahoots.studio</a>
+        </address>
+        <ul class="site-header__social" aria-label="Social">
+${social}
+        </ul>
       </div>
       <hr class="site-header__rule">
     </div>

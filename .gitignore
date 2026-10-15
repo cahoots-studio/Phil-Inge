@@ -2,3 +2,5 @@
 .claude/
 *.gdoc
 *.gsheet
+.figma-sync/*
+!.figma-sync/state.json

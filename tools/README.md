@@ -79,6 +79,35 @@ To re-sync after changing variables in Figma: ask Claude to re-export them into
 
 Colors aren't mode-based yet (the Light scheme is hard-coded in styles.css).
 
+## Push to Figma
+
+Ask Claude to "push to Figma". Every page is rebuilt as a frame in the
+**Site — synced from code** section on the Figma Design page, assembled from the
+library components (Top, Gallery, Media, Tag, Headline, Text, Project Tile,
+Navigation, Footer) with spacing bound to the Figma variables. Each push replaces
+the frame of the same name in place. Frames outside the section are never touched.
+
+- Media: images go up as they are; videos go up as their poster frame. HEIC, AVIF
+  and TIFF are converted to JPEG first. SVG is skipped. Empty slots keep the
+  component's placeholder image.
+- Text that only differs in case or spacing is left alone, so typesetting done in
+  Figma survives a push.
+- Figma's image hash is the SHA-1 of the file, so an image is uploaded only once,
+  and pull-from-Figma can compare any slot with the local file directly.
+
+Claude runs the Figma half through the Figma connector. The tool prepares and
+records it:
+
+```bash
+node tools/figma-sync.js plan [page…]      # compile pages, list media not yet in Figma
+node tools/figma-sync.js upload '<urls>'   # post that media to Figma upload URLs
+node tools/figma-sync.js script <page…|all> # write the Figma build script
+node tools/figma-sync.js status            # frames and images from the last push
+```
+
+`.figma-sync/state.json` (committed) holds the uploaded image hashes and frame ids.
+The rest of `.figma-sync/` is scratch.
+
 ## Other commands
 
 ```bash

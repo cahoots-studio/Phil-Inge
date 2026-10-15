@@ -213,8 +213,9 @@ address { font-style: normal; }
 }
 .site-header__panel { grid-area: 1 / nav-start / 3 / nav-end; }
 .site-header__aside {
-  grid-area: 2 / logo-start / 3 / logo-end;
-  justify-content: flex-end;
+  /* Under the logo, Gap/Medium below it — the same step as nav title → links */
+  grid-area: 1 / logo-start / 3 / logo-end;
+  padding-top: calc(var(--nav-row) + var(--gap-medium));
   gap: var(--gap-medium);
   font-size: var(--size-text-small);
   line-height: normal;
@@ -374,7 +375,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   .site-header__inner { display: flex; flex-direction: column; }
   .site-header__panel { gap: var(--gap-huge); }
   .site-header__panel,
-  .site-header__aside { flex: none; overflow: visible; }
+  .site-header__aside { flex: none; overflow: visible; padding-top: 0; }
   .site-nav {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-huge);

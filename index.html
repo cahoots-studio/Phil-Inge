@@ -20,9 +20,12 @@
         <a class="site-logo" href="./" aria-label="Phil Inge — home">
           <img src="assets/logo.svg" width="312.458" height="50.9614" alt="Phil Inge">
         </a>
-        <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <p class="site-header__peek" aria-hidden="true"><span>Portfolio</span><span>Tools</span><span>Services</span><span>Sessions</span></p>
+        <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-panel" aria-label="Open menu">
           <span></span><span></span>
         </button>
+      </div>
+      <div class="site-header__panel" id="site-panel">
         <nav class="site-nav" id="site-nav" aria-label="Main">
           <div class="site-nav__col">
             <a class="site-nav__heading" href="projects/">Portfolio</a>
@@ -61,6 +64,27 @@
             </ul>
           </div>
         </nav>
+        <div class="site-header__extra">
+          <address class="site-header__contact">
+            <span>c/o Cahoots Studio</span>
+            <span>Denver, CO 80202</span>
+            <a href="https://www.cahoots.studio">www.cahoots.studio</a>
+          </address>
+          <ul class="site-header__social" aria-label="Social">
+            <li><a href="#" aria-label="LinkedIn"><img src="assets/icons/linkedin.svg" width="20" height="20" alt=""></a></li>
+            <li><a href="#" aria-label="Instagram"><img src="assets/icons/instagram.svg" width="20" height="20" alt=""></a></li>
+            <li><a href="#" aria-label="Behance"><img src="assets/icons/behance.svg" width="20" height="20" alt=""></a></li>
+            <li><a href="#" aria-label="Awwwards"><img src="assets/icons/awwwards.svg" width="20" height="20" alt=""></a></li>
+          </ul>
+          <div class="site-header__affiliates">
+            <p class="site-header__label">Affiliates</p>
+            <ul>
+              <li><a href="#">GWK</a></li>
+              <li><a href="https://www.cahoots.studio">Cahoots</a></li>
+              <li><a href="#">Jagaloon</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
       <hr class="site-header__rule">
     </div>

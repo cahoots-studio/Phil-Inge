@@ -176,19 +176,49 @@ ${pad}</div>`;
   }).join('\n');
 }
 
+// Figma: Navigation. Desktop is a slim bar that opens into a 3/4-height takeover
+// (Desktop Expanded) on hover; touch devices and phones open it with the toggle (js/nav.js).
+const AFFILIATES = [
+  { name: 'GWK', href: '#' },
+  { name: 'Cahoots', href: 'https://www.cahoots.studio' },
+  { name: 'Jagaloon', href: '#' },
+];
+
 function header(c, projects, currentSlug) {
+  const cols = navColumns(c, projects, currentSlug);
+  const social = SOCIAL.map(s =>
+    `            <li><a href="${s.href}" aria-label="${s.name}"><img src="${c.p}assets/icons/${s.icon}.svg" width="20" height="20" alt=""></a></li>`).join('\n');
   return `  <header class="site-header" data-sc-scheme="scheme-1">
     <div class="site-header__inner">
       <div class="site-header__bar">
         <a class="site-logo" href="${c.p || './'}" aria-label="Phil Inge — home">
           <img src="${c.p}assets/logo.svg" width="312.458" height="50.9614" alt="Phil Inge">
         </a>
-        <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <p class="site-header__peek" aria-hidden="true">${cols.map(col => `<span>${esc(col.heading)}</span>`).join('')}</p>
+        <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-panel" aria-label="Open menu">
           <span></span><span></span>
         </button>
+      </div>
+      <div class="site-header__panel" id="site-panel">
         <nav class="site-nav" id="site-nav" aria-label="Main">
-${navList(navColumns(c, projects, currentSlug), 'site-nav', '          ')}
+${navList(cols, 'site-nav', '          ')}
         </nav>
+        <div class="site-header__extra">
+          <address class="site-header__contact">
+            <span>c/o Cahoots Studio</span>
+            <span>Denver, CO 80202</span>
+            <a href="https://www.cahoots.studio">www.cahoots.studio</a>
+          </address>
+          <ul class="site-header__social" aria-label="Social">
+${social}
+          </ul>
+          <div class="site-header__affiliates">
+            <p class="site-header__label">Affiliates</p>
+            <ul>
+${AFFILIATES.map(a => `              <li><a href="${a.href}">${esc(a.name)}</a></li>`).join('\n')}
+            </ul>
+          </div>
+        </div>
       </div>
       <hr class="site-header__rule">
     </div>

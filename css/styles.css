@@ -112,15 +112,16 @@ address { font-style: normal; }
 }
 
 .site-header {
-  /* Figma Navigation bindings: Block/Medium top, Block/Small bottom,
-     Section/Global sides, Gap/Medium above the rule (Gap/Large expanded) */
-  --nav-pad-y: var(--pad-block-medium);
-  --nav-pad-bottom: var(--pad-block-small);
+  /* Figma Navigation. Desktop: a slim bar (Block/Tiny padding, small logo) that opens
+     into a 3/4-height takeover — Desktop Expanded — on hover (js/nav.js). */
+  --nav-pad-y: var(--pad-block-tiny);
   --nav-pad-x: var(--pad-section-global);
-  --nav-row: 70px;
-  --nav-gap: var(--gap-medium);
+  --nav-logo-w: 200px;
+  --nav-row: 33px; /* the 200px logo's height */
   --nav-text: var(--size-text-small);
-  --header-h: calc(var(--nav-pad-y) + var(--nav-pad-bottom) + var(--nav-row) + var(--nav-gap) + 1px);
+  --nav-open-h: 75vh;
+  --nav-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --header-h: calc(var(--nav-pad-y) * 2 + var(--nav-row) + 1px);
   /* Hidden at the top of the page; slides in once you scroll (js/nav.js).
      Moved with `top`, not transform, so the fixed mobile menu still works. */
   position: fixed;
@@ -129,7 +130,7 @@ address { font-style: normal; }
   right: 0;
   z-index: 50;
   height: var(--header-h);
-  transition: top 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: top 0.4s var(--nav-ease);
 }
 .site-header.is-revealed,
 .site-header:focus-within,
@@ -140,24 +141,29 @@ address { font-style: normal; }
   inset: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--nav-gap);
-  padding: var(--nav-pad-y) var(--nav-pad-x) var(--nav-pad-bottom);
+  height: var(--header-h);
+  padding: var(--nav-pad-y) var(--nav-pad-x) 0;
+  overflow: hidden;
   background: var(--scheme-bg);
   color: var(--scheme-text);
+  transition: height 0.45s var(--nav-ease);
 }
+.site-header.is-open .site-header__inner { height: var(--nav-open-h); }
 
 .site-header__bar {
   display: flex;
-  align-items: flex-start;
+  flex: none;
+  align-items: center;
   justify-content: space-between;
   gap: var(--gap-small);
   width: 100%;
   max-width: var(--container-max);
   min-height: var(--nav-row);
-  margin-inline: auto;
+  margin: 0 auto var(--nav-pad-y);
 }
 
 .site-header__rule {
+  flex: none;
   width: 100%;
   max-width: var(--container-max);
   height: 1px;
@@ -167,46 +173,116 @@ address { font-style: normal; }
 }
 
 .site-logo { display: block; flex-shrink: 0; }
-.site-logo img { width: 312.458px; max-width: 100%; height: auto; }
+.site-logo img { display: block; width: var(--nav-logo-w); max-width: 100%; height: auto; }
 
-.site-nav {
+/* Collapsed: the section names, as a quiet label for the hover target */
+.site-header__peek {
   display: flex;
-  justify-content: flex-end;
   gap: var(--gap-huge);
+  font-size: var(--nav-text);
+  font-weight: 600;
+  line-height: normal;
+  transition: opacity 0.2s ease;
+}
+.site-header.is-open .site-header__peek { opacity: 0; }
+
+/* Expanded panel: four swiss columns + contact and affiliates */
+.site-header__panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--gap-large);
+  width: 100%;
+  min-height: 0;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--pad-block-tiny) 0 var(--nav-pad-y);
+  overflow: hidden;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.2s ease, transform 0.45s var(--nav-ease), visibility 0s 0.45s;
+}
+.site-header.is-open .site-header__panel {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.35s ease 0.12s, transform 0.45s var(--nav-ease) 0.08s, visibility 0s;
 }
 
+.site-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap-large);
+  align-items: start;
+}
 .site-nav__col {
   display: flex;
-  flex: none;
   flex-direction: column;
   gap: var(--gap-medium);
 }
-
 .site-nav__heading {
   font-size: var(--nav-text);
   font-weight: 600;
   line-height: normal;
 }
 a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3px; }
-
 .site-nav__links {
-  display: none;
+  display: flex;
   flex-direction: column;
-  gap: var(--gap-small);
+  gap: var(--gap-tiny);
 }
-.site-nav:hover .site-nav__links,
-.site-nav:focus-within .site-nav__links { display: flex; }
 
-/* Layout=Desktop Expanded: rule drops to 32px, columns take their comp widths
-   (min-width rather than width so long link names aren't clipped) */
-@media (min-width: 1024px) {
-  .site-header__inner:has(.site-nav:hover),
-  .site-header__inner:has(.site-nav:focus-within) { gap: var(--gap-large); }
-  .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(1) { min-width: 124px; }
-  .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(2) { min-width: 110px; }
-  .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(3) { min-width: 103px; }
-  .site-nav:is(:hover, :focus-within) .site-nav__col:nth-child(4) { min-width: 70px; }
+/* Magnify: the hovered link grows to full size (Text/Huge); its neighbours grow
+   less the further away they are. Rest size is Text/Large. */
+.site-nav__links li { --s: 0; }
+.site-nav .nav-link {
+  padding: 0;
+  font-size: calc(var(--size-text-large) + (var(--size-text-huge) - var(--size-text-large)) * var(--s));
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  white-space: normal;
+  transition: font-size 0.3s var(--nav-ease);
 }
+.site-nav .nav-link:hover { text-decoration: none; }
+.site-nav .nav-link[aria-current="page"] { font-weight: 700; }
+@media (hover: hover) {
+  .site-nav__links li:is(:hover, :focus-within) { --s: 1; }
+  .site-nav__links li:has(+ li:is(:hover, :focus-within)),
+  .site-nav__links li:is(:hover, :focus-within) + li { --s: 0.55; }
+  .site-nav__links li:has(+ li + li:is(:hover, :focus-within)),
+  .site-nav__links li:is(:hover, :focus-within) + li + li { --s: 0.25; }
+}
+
+.site-header__extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--gap-medium) var(--gap-huge);
+  margin-top: auto;
+  font-size: var(--size-text-small);
+  line-height: normal;
+}
+.site-header__contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tiny);
+  font-style: normal;
+}
+.site-header__social { display: flex; align-items: center; gap: 16px; }
+.site-header__social a { display: block; transition: opacity 0.15s ease; }
+.site-header__social a:hover { opacity: 0.6; }
+.site-header__social img { width: 20px; height: 20px; filter: brightness(0); } /* icons are white */
+.site-header__affiliates {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-medium);
+  margin-left: auto;
+}
+.site-header__affiliates ul { display: flex; gap: var(--gap-medium); }
+.site-header__label { font-weight: 600; }
+.site-header__extra a:not(:has(img)):hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Navigation Link component: Default / Hover / Current / Focus */
 .nav-link {
@@ -225,7 +301,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   outline-offset: 0;
 }
 
-/* Menu trigger (mobile only) */
+/* Menu toggle: phones, and touch screens of any size (no hover to open it) */
 .site-header__toggle {
   display: none;
   position: relative;
@@ -238,6 +314,9 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   color: inherit;
   cursor: pointer;
 }
+@media (hover: none), (pointer: coarse) {
+  .site-header__toggle { display: block; }
+}
 .site-header__toggle span {
   position: absolute;
   left: 2px;
@@ -248,52 +327,49 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 }
 .site-header__toggle span:first-child { top: 8px; }
 .site-header__toggle span:last-child  { top: 14px; }
+/* Open: the "<" close glyph from the comp */
+.site-header.is-open .site-header__toggle span {
+  top: 11px;
+  left: 6px;
+  width: 12px;
+  transform-origin: left center;
+}
+.site-header.is-open .site-header__toggle span:first-child { transform: rotate(-45deg); }
+.site-header.is-open .site-header__toggle span:last-child  { transform: rotate(45deg); }
 
 /* Layout=Mobile / Mobile Open — from the Tablet mode down */
 @media (max-width: 1023.98px) {
   .site-header {
-    --nav-pad-y: var(--pad-block-tiny);
-    --nav-pad-bottom: var(--pad-block-tiny);
+    --nav-logo-w: 312.458px;
     --nav-row: 50.28px;
     --header-h: calc(var(--nav-pad-y) * 2 + var(--nav-row));
   }
-  .site-header__bar { align-items: center; }
   .site-header__rule,
-  .site-nav { display: none; }
+  .site-header__peek { display: none; }
   .site-logo { flex: 1 1 0; min-width: 0; }
   .site-header__toggle { display: block; }
 
   .site-header.is-open .site-header__inner {
     position: fixed;
     inset: 0;
+    height: auto;
     overflow-y: auto;
   }
-  .site-header.is-open .site-header__bar {
-    flex-wrap: wrap;
-    align-content: flex-start;
-  }
-  .site-header.is-open .site-nav {
-    display: flex;
-    flex: 0 0 100%;
-    flex-direction: column;
-    gap: var(--gap-huge);
-    margin-top: calc(var(--gap-huge) - var(--gap-small)); /* bar → panel = Gap/Huge */
-  }
-  .site-header.is-open .site-nav__col { gap: var(--gap-medium); }
-  .site-header.is-open .site-nav__links { display: flex; }
-
-  /* Open state shows the "<" close glyph from the comp */
-  .site-header.is-open .site-header__toggle span {
-    top: 11px;
-    left: 6px;
-    width: 12px;
-    transform-origin: left center;
-  }
-  .site-header.is-open .site-header__toggle span:first-child { transform: rotate(-45deg); }
-  .site-header.is-open .site-header__toggle span:last-child  { transform: rotate(45deg); }
+  .site-header__panel { gap: var(--gap-huge); overflow: visible; }
+  .site-nav { grid-template-columns: minmax(0, 1fr); gap: var(--gap-huge); }
+  .site-header__extra { flex-direction: column; align-items: flex-start; margin-top: 0; }
+  .site-header__affiliates { margin-left: 0; }
 }
 
 .nav-locked { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .site-header__inner,
+  .site-header__panel,
+  .site-header__peek,
+  .site-nav .nav-link { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+}
 
 /* ==========================================================================
    Portfolio grid

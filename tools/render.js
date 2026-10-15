@@ -154,7 +154,7 @@ function navColumns(c, projects, currentSlug) {
   return [
     { heading: 'Portfolio', href: `${c.p}projects/`,
       links: projects.map(pr => ({ label: pr.title, href: projectHref(c, pr.slug), current: pr.slug === currentSlug })) },
-    { heading: 'Tools', links: links(['Brand Aligner', 'Vibe Dialer', 'Message Maker', 'Builder']) },
+    { heading: 'Tools', links: links(['Crayonsnack', 'Vibe Dial', 'Recolorator', 'Builder', 'Message Maker', 'Brand Aligner']) },
     { heading: 'Services', links: links(['Logo Design', 'Visual Identity Design', 'Website Design', 'Integrated Visual Brand Systems']) },
     { heading: 'Sessions', links: links(['Learn', 'Build', 'Consult']) },
   ];

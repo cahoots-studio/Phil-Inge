@@ -152,7 +152,7 @@ function head({ title, description }, c) {
 function navColumns(c, projects, currentSlug) {
   const links = labels => labels.map(label => ({ label, href: '#' }));
   return [
-    { heading: 'Portfolio', href: `${c.p}projects/`,
+    { heading: 'Portfolio', href: `${c.p}projects/`, viewAll: `${c.p}projects/`,
       links: projects.map(pr => ({ label: pr.title, href: projectHref(c, pr.slug), current: pr.slug === currentSlug })) },
     { heading: 'Tools', links: links(['Crayonsnack', 'Vibe Dial', 'Recolorator', 'Builder', 'Message Maker', 'Brand Aligner']) },
     { heading: 'Services', links: links(['Logo Design', 'Visual Identity Design', 'Website Design', 'Integrated Visual Brand Systems']) },
@@ -167,11 +167,14 @@ function navList(cols, cls, pad) {
       : `<p class="${cls}__heading">${esc(col.heading)}</p>`;
     const items = col.links.map(l =>
       `${pad}    <li><a class="nav-link" href="${esc(l.href)}"${l.current ? ' aria-current="page"' : ''}>${esc(l.label)}</a></li>`).join('\n');
+    const all = col.viewAll
+      ? `\n${pad}  <a class="nav-link nav-link--all" href="${col.viewAll}">View all <span aria-hidden="true">→</span></a>`
+      : '';
     return `${pad}<div class="${cls}__col">
 ${pad}  ${heading}
 ${pad}  <ul class="${cls}__links">
 ${items}
-${pad}  </ul>
+${pad}  </ul>${all}
 ${pad}</div>`;
   }).join('\n');
 }
@@ -233,12 +236,37 @@ const SOCIAL = [
   { name: 'Awwwards', icon: 'awwwards', href: '#' },
 ];
 
+// Footer message field: short prompt at rest, the full example once it opens
+const MESSAGE_PROMPT = [
+  'message me here',
+  'Hey Phil, this is [Sam Squanch] from [Thusandsuch Bros.] I’m hoping you can help me. Call me back at [anytime that works for you].',
+];
+
 function footer(c, projects) {
   const social = SOCIAL.map(s =>
     `          <li><a class="site-footer__social-link" href="${s.href}" aria-label="${s.name}"><img src="${c.p}assets/icons/${s.icon}.svg" width="20" height="20" alt=""></a></li>`).join('\n');
   return `  <footer class="site-footer" data-sc-scheme="scheme-3">
     <div class="site-footer__upper">
       <div class="site-footer__identity">
+        <div class="site-footer__logo">
+          <a href="${c.p || './'}" aria-label="Phil Inge — home"><img src="${c.p}assets/logo-light.svg" width="312.458" height="50.9614" alt="Phil Inge"></a>
+        </div>
+      <form class="site-footer__form contact-form" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="contact">
+        <p hidden><label>Leave this empty <input name="bot-field"></label></p>
+        <label class="contact-form__message">
+          <span class="visually-hidden">Message</span>
+          <textarea class="ghost-field ghost-field--message" name="message" rows="2" required
+            placeholder="${MESSAGE_PROMPT[0]}" data-placeholder-open="${esc(MESSAGE_PROMPT[1])}"></textarea>
+        </label>
+        <div class="contact-form__reply">
+          <label class="contact-form__label" for="contact-email">Contact preference</label>
+          <div class="contact-form__row">
+            <input class="ghost-field ghost-field--email" id="contact-email" type="email" name="email" autocomplete="email" placeholder="email@yourdomain.com" required>
+            <button class="sc-button sc-button--primary sc-button--round contact-form__send" type="submit">Send</button>
+          </div>
+        </div>
+      </form>
         <address class="site-footer__address">
           <span>c/o Cahoots Studio</span>
           <span>Denver, CO 80202</span>
@@ -251,10 +279,6 @@ ${social}
       <nav class="site-footer__nav" aria-label="Footer">
 ${navList(navColumns(c, projects), 'site-footer', '        ')}
       </nav>
-    </div>
-
-    <div class="site-footer__logo">
-      <a href="${c.p || './'}" aria-label="Phil Inge — home"><img src="${c.p}assets/logo-light.svg" width="312.458" height="50.9614" alt="Phil Inge"></a>
     </div>
 
     <hr class="site-footer__rule">
@@ -274,6 +298,7 @@ ${navList(navColumns(c, projects), 'site-footer', '        ')}
   </footer>
 
   <script src="${c.p}js/nav.js" defer></script>
+  <script src="${c.p}js/contact.js" defer></script>
   <script src="${c.p}js/media.js" defer></script>${c.edit ? `
   <script src="/tools/editor/editor.js" defer></script>` : ''}
 </body>
@@ -503,7 +528,11 @@ function renderNode(n, env, parentDir, depth) {
       const { value, target } = blockText(n, env);
       const level = /^h[1-6]$/.test(n.level) ? n.level : 'h2';
       const size = SIZES.headline.includes(n.size) ? n.size : 'Large';
-      return `${pad}<${level} class="sc-headline sc-headline--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</${level}>`;
+      // accent: "end" colours the last character (Figma: the Hero's purple semicolon)
+      const body = n.accent === 'end' && value.length > 1
+        ? `${esc(value.slice(0, -1))}<span class="sc-accent">${esc(value.slice(-1))}</span>`
+        : esc(value);
+      return `${pad}<${level} class="sc-headline sc-headline--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${body}</${level}>`;
     }
     case 'text': {
       const { value, target } = blockText(n, env);

@@ -36,7 +36,8 @@
             "case": "upper",
             "leading": "1.1",
             "wordSpacing": "0.15em",
-            "maxWidth": "1294px"
+            "maxWidth": "1294px",
+            "accent": "end"
           }
         ]
       }

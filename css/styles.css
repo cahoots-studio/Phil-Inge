@@ -9,6 +9,7 @@
   --color-yellow: #e5ff00;
   --color-pink: #ff00bb;
   --color-green: #00ff66;
+  --color-lavender: #cfa4ff; /* Scheme 3 — Contrast / Accent */
 
   /* Transparency */
   --transparency-neutral-darkest-10: #24201a1a;
@@ -252,12 +253,12 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 }
 
 /* Magnify: the hovered link grows to full size; its neighbours grow less the further
-   away they are. Sizes scale with the nav column (2.6% rest, 4% full of its width),
-   capped at Text/Large and Text/Huge. */
+   away they are. At rest, links match the column headers (Text/Small); the hovered
+   link grows 3%. */
 .site-nav__links li { --s: 0; }
 .site-nav {
-  --mega-rest: min(var(--size-text-large), 2.6cqi);
-  --mega-full: min(var(--size-text-huge), 4cqi);
+  --mega-rest: var(--nav-text);
+  --mega-full: calc(var(--mega-rest) * 1.03);
 }
 .site-nav .nav-link {
   padding: 0;
@@ -269,6 +270,18 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   transition: font-size 0.3s var(--nav-ease);
 }
 .site-nav .nav-link:hover { text-decoration: none; }
+
+/* "View all" closes the Portfolio column — set apart from the list */
+.nav-link--all {
+  --s: 0;
+  align-self: flex-start;
+  font-weight: 600;
+  color: var(--color-electric-violet);
+}
+.site-footer .nav-link--all { color: var(--color-lavender); }
+.nav-link--all span { display: inline-block; transition: transform 0.2s ease; }
+.nav-link--all:hover { text-decoration: none; }
+.nav-link--all:hover span { transform: translateX(4px); }
 .site-nav .nav-link[aria-current="page"] { font-weight: 700; }
 @media (hover: hover) {
   .site-nav__links li:is(:hover, :focus-within) { --s: 1; }
@@ -287,10 +300,10 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .site-header__social { display: flex; align-items: center; gap: 16px; }
 .site-header__social a { display: block; transition: opacity 0.15s ease; }
 .site-header__social a:hover { opacity: 0.6; }
-.site-header__social img { width: 20px; height: 20px; filter: brightness(0); } /* icons are white */
+.site-header__social img { filter: brightness(0); } /* icons are white */
 .site-header__affiliates {
   display: flex;
-  align-self: flex-end;
+  align-self: flex-start;
   align-items: baseline;
   gap: var(--gap-medium);
   margin-top: auto;
@@ -379,10 +392,9 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   .site-nav {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-huge);
-    --mega-rest: var(--size-text-large);
-    --mega-full: var(--size-text-large);
+    --mega-full: var(--mega-rest);
   }
-  .site-header__affiliates { align-self: flex-start; margin-top: 0; }
+  .site-header__affiliates { margin-top: 0; }
 }
 
 .nav-locked { overflow: hidden; }
@@ -392,7 +404,8 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   .site-header__inner,
   .site-header__panel,
   .site-header__peek,
-  .site-nav .nav-link { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .site-nav .nav-link,
+  .ghost-field { transition-duration: 0.01s !important; transition-delay: 0s !important; }
 }
 
 /* ==========================================================================
@@ -731,6 +744,18 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .sc-field__input::placeholder { color: var(--scheme-text); opacity: 1; }
 textarea.sc-field__input { min-height: 128px; resize: vertical; }
 
+/* Accent character in a headline (the Hero's semicolon) */
+.sc-accent { color: var(--color-lavender); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* ==========================================================================
    Footer
    ========================================================================== */
@@ -751,16 +776,82 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
 }
 .site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-.site-footer__upper {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--gap-large);
-}
-
-.site-footer__identity {
+/* Message form: ghosted fields. Rest = ghosted; hover = a touch brighter (the message
+   field opens up to the full writing state); focus (writing) = fully bright;
+   filled = lavender. */
+.contact-form {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-medium);
+  gap: var(--gap-large);
+}
+.ghost-field {
+  --ghost-line: rgba(246, 245, 241, 0.16);
+  --ghost-hint: rgba(246, 245, 241, 0.35);
+  display: block;
+  width: 100%;
+  padding: var(--pad-control-large);
+  border: 1px solid var(--ghost-line);
+  border-radius: var(--corners-input);
+  background: transparent;
+  color: var(--scheme-text);
+  font: 400 var(--size-text-small) / 1.35 var(--font-text);
+  transition: border-color 0.25s ease, background-color 0.25s ease, color 0.25s ease, height 0.4s var(--nav-ease, ease);
+}
+.ghost-field::placeholder { color: var(--ghost-hint); opacity: 1; transition: color 0.25s ease; }
+.ghost-field:hover {
+  --ghost-line: rgba(246, 245, 241, 0.32);
+  --ghost-hint: rgba(246, 245, 241, 0.55);
+}
+.ghost-field:focus,
+.ghost-field--message:hover:placeholder-shown {
+  --ghost-line: var(--scheme-text);
+  --ghost-hint: rgba(246, 245, 241, 0.55);
+  outline: none;
+  background: rgba(246, 245, 241, 0.05);
+}
+.ghost-field:not(:placeholder-shown):not(:focus) {
+  --ghost-line: var(--color-lavender);
+  background: rgba(207, 164, 255, 0.08);
+  color: var(--color-lavender);
+}
+
+.ghost-field--message {
+  height: calc(var(--size-text-small) * 1.35 * 2 + var(--pad-control-small) * 2 + 2px);
+  padding: var(--pad-control-small); /* Padding/Control/Small */
+  font-size: var(--size-text-small);
+  resize: none;
+}
+.ghost-field--message:is(:hover, :focus, :not(:placeholder-shown)) { height: 220px; }
+
+.contact-form__reply { display: flex; flex-direction: column; gap: var(--gap-small); }
+.contact-form__label { font-weight: 600; }
+.contact-form__row { display: flex; align-items: center; gap: var(--gap-medium); max-width: 644px; }
+.ghost-field--email { flex: 1 1 auto; min-width: 0; min-height: 44px; padding-block: var(--pad-control-medium); }
+.contact-form__send {
+  flex: none;
+  background: var(--scheme-text);
+  color: var(--scheme-bg);
+  transition: background-color 0.2s ease;
+}
+.contact-form__send:hover { background: var(--color-lavender); }
+.contact-form__status { color: var(--color-lavender); }
+
+.site-footer__upper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-huge);
+}
+
+/* Left column: everything is as wide as the logo. Right column hugs its links.
+   The row spaces the two apart. */
+.site-footer__identity {
+  --footer-logo-w: 312.458px;
+  display: flex;
+  flex: 0 1 var(--footer-logo-w);
+  flex-direction: column;
+  gap: var(--gap-large);
+  min-width: 0;
 }
 .site-footer__address {
   display: flex;
@@ -772,13 +863,37 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
 .site-footer__social { display: flex; align-items: center; gap: 16px; }
 .site-footer__social a { display: block; padding: 0; border-radius: var(--radius-small); opacity: 1; transition: opacity 0.15s ease; }
 .site-footer__social a:hover { opacity: 0.7; }
-.site-footer__social img { width: 20px; height: 20px; }
+.site-footer__social img { display: block; }
+/* Social icons stay square and scale with the viewport, never under 16px */
+:is(.site-header__social, .site-footer__social) li { flex: none; }
+:is(.site-header__social, .site-footer__social) img {
+  width: clamp(16px, 1.16vw, 20px);
+  height: auto;
+  aspect-ratio: 1;
+}
 
-/* Same four columns as the top nav, in an 835px block (Figma) */
-.site-footer__nav { display: flex; flex: 0 1 835px; gap: var(--gap-huge); }
+/* Same four columns as the top nav, each as wide as its links. 2×2 from tablet
+   landscape (under 1280px), 1×4 from tablet portrait (under 1024px). */
+.site-footer__nav {
+  display: grid;
+  flex: 0 1 auto;
+  grid-template-columns: repeat(4, auto);
+  gap: var(--gap-large) var(--gap-huge);
+}
+@media (max-width: 1279.98px) {
+  .site-footer__nav { grid-template-columns: repeat(2, auto); }
+}
+@media (max-width: 1023.98px) {
+  .site-footer__nav { grid-template-columns: auto; }
+}
+/* Phones: the two footer columns stack */
+@media (max-width: 767.98px) {
+  .site-footer__upper { flex-direction: column; }
+  .site-footer__identity { flex: none; width: 100%; max-width: var(--footer-logo-w); }
+  .site-footer__nav { flex: none; width: 100%; }
+}
 .site-footer__col {
   display: flex;
-  flex: 1 1 0;
   flex-direction: column;
   gap: var(--gap-medium);
   min-width: 0;
@@ -793,14 +908,7 @@ textarea.sc-field__input { min-height: 128px; resize: vertical; }
 .site-footer__heading { font-weight: 600; }
 a.site-footer__heading { padding: 0; }
 
-/* Logo row: Figma's logo slot keeps the old wordmark's proportions, so the
-   row is tall with the logo vertically centred at the left */
-.site-footer__logo {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  aspect-ratio: 641.928 / 87.015;
-}
+.site-footer__logo { display: flex; }
 .site-footer__logo a { display: block; padding: 0; }
 .site-footer__logo img { width: 312.458px; max-width: 100%; height: auto; }
 
@@ -848,15 +956,9 @@ a.site-footer__heading { padding: 0; }
   [data-m="stack"] > * { flex: none !important; width: auto !important; height: auto !important; align-self: stretch !important; }
   [data-m="stack"] [data-dir="row"] > * { flex: 1 1 0 !important; }
   [data-m="stack"] .sc-media { aspect-ratio: 4 / 3 !important; height: auto !important; }
-
-  .site-footer__upper { flex-direction: column; }
-  .site-footer__nav { flex: none; width: 100%; }
-  .site-footer__nav { gap: var(--gap-large); }
 }
 
 @media (max-width: 560px) {
-  .site-footer__nav { flex-direction: column; gap: var(--gap-large); }
-  .site-footer__col { flex: none; }
   .site-footer__credits { flex-direction: column; gap: var(--gap-tiny); }
 }
 

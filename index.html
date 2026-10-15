@@ -36,6 +36,7 @@
               <li><a class="nav-link" href="projects/glca.html">GLCA</a></li>
               <li><a class="nav-link" href="projects/tiny-hawk.html">Tiny Hawk</a></li>
             </ul>
+            <a class="nav-link nav-link--all" href="projects/">View all <span aria-hidden="true">→</span></a>
           </div>
           <div class="site-nav__col">
             <p class="site-nav__heading">Tools</p>
@@ -96,7 +97,7 @@
     <section data-top class="sc-section" style="padding: 0 var(--pad-section-global) 0">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
         <div class="sc-component" style="padding: var(--pad-section-large) 0 var(--pad-section-large)">
-          <h1 class="sc-headline sc-headline--huge" style="max-width: 1294px; line-height: 1.1; text-transform: uppercase; word-spacing: 0.15em">Phil Inge helps people build brands.</h1>
+          <h1 class="sc-headline sc-headline--huge" style="max-width: 1294px; line-height: 1.1; text-transform: uppercase; word-spacing: 0.15em">Phil Inge helps people build brands<span class="sc-accent">;</span></h1>
         </div>
       </div>
     </section>
@@ -172,6 +173,25 @@
   <footer class="site-footer" data-sc-scheme="scheme-3">
     <div class="site-footer__upper">
       <div class="site-footer__identity">
+        <div class="site-footer__logo">
+          <a href="./" aria-label="Phil Inge — home"><img src="assets/logo-light.svg" width="312.458" height="50.9614" alt="Phil Inge"></a>
+        </div>
+      <form class="site-footer__form contact-form" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="contact">
+        <p hidden><label>Leave this empty <input name="bot-field"></label></p>
+        <label class="contact-form__message">
+          <span class="visually-hidden">Message</span>
+          <textarea class="ghost-field ghost-field--message" name="message" rows="2" required
+            placeholder="message me here" data-placeholder-open="Hey Phil, this is [Sam Squanch] from [Thusandsuch Bros.] I’m hoping you can help me. Call me back at [anytime that works for you]."></textarea>
+        </label>
+        <div class="contact-form__reply">
+          <label class="contact-form__label" for="contact-email">Contact preference</label>
+          <div class="contact-form__row">
+            <input class="ghost-field ghost-field--email" id="contact-email" type="email" name="email" autocomplete="email" placeholder="email@yourdomain.com" required>
+            <button class="sc-button sc-button--primary sc-button--round contact-form__send" type="submit">Send</button>
+          </div>
+        </div>
+      </form>
         <address class="site-footer__address">
           <span>c/o Cahoots Studio</span>
           <span>Denver, CO 80202</span>
@@ -194,6 +214,7 @@
             <li><a class="nav-link" href="projects/glca.html">GLCA</a></li>
             <li><a class="nav-link" href="projects/tiny-hawk.html">Tiny Hawk</a></li>
           </ul>
+          <a class="nav-link nav-link--all" href="projects/">View all <span aria-hidden="true">→</span></a>
         </div>
         <div class="site-footer__col">
           <p class="site-footer__heading">Tools</p>
@@ -226,10 +247,6 @@
       </nav>
     </div>
 
-    <div class="site-footer__logo">
-      <a href="./" aria-label="Phil Inge — home"><img src="assets/logo-light.svg" width="312.458" height="50.9614" alt="Phil Inge"></a>
-    </div>
-
     <hr class="site-footer__rule">
 
     <div class="site-footer__lower">
@@ -247,6 +264,7 @@
   </footer>
 
   <script src="js/nav.js" defer></script>
+  <script src="js/contact.js" defer></script>
   <script src="js/media.js" defer></script>
 </body>
 </html>

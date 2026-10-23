@@ -12,7 +12,9 @@
     }
   ],
   "cover": {
-    "src": null,
+    "type": "video",
+    "src": "assets/uploads/tiny-hawk/cover-mvlikyad.mp4",
+    "poster": "assets/uploads/tiny-hawk/cover-mvlikyad-poster.jpg",
     "alt": ""
   },
   "sections": [
@@ -37,7 +39,9 @@
               "content": {
                 "media": [
                   {
-                    "src": null,
+                    "type": "video",
+                    "src": "assets/uploads/tiny-hawk/s1-1-mvliljbk.mp4",
+                    "poster": "assets/uploads/tiny-hawk/s1-1-mvliljbk-poster.jpg",
                     "alt": ""
                   }
                 ]

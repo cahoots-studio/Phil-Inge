@@ -1,5 +1,5 @@
 {
-  "source": "Figma file lku8ICcBCPYcllZIIjVi3u — Style Guide & Component Library",
+  "source": "Figma file lku8ICcBCPYcllZIIjVi3u \u2014 Style Guide & Component Library",
   "exported": "2026-10-12",
   "breakpoints": {
     "1440": 1280,
@@ -541,6 +541,38 @@
           "1920": 32,
           "Desktop": 32,
           "Tablet": 32,
+          "Mobile Landscape": 16,
+          "Mobile Portrait": 16
+        },
+        "Padding/Container/None": {
+          "1920": 0,
+          "1440": 0,
+          "Desktop": 0,
+          "Tablet": 0,
+          "Mobile Landscape": 0,
+          "Mobile Portrait": 0
+        },
+        "Padding/Container/Small": {
+          "1920": 16,
+          "1440": 16,
+          "Desktop": 16,
+          "Tablet": 16,
+          "Mobile Landscape": 16,
+          "Mobile Portrait": 16
+        },
+        "Padding/Container/Medium": {
+          "1920": 24,
+          "1440": 24,
+          "Desktop": 20,
+          "Tablet": 16,
+          "Mobile Landscape": 16,
+          "Mobile Portrait": 16
+        },
+        "Padding/Container/Large": {
+          "1920": 32,
+          "1440": 32,
+          "Desktop": 24,
+          "Tablet": 20,
           "Mobile Landscape": 16,
           "Mobile Portrait": 16
         }

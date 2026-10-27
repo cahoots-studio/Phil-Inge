@@ -53,6 +53,10 @@
   --padding-control-large: 24px;
   --padding-control-huge: 32px;
   --padding-gap-media: 32px;
+  --padding-container-none: 0;
+  --padding-container-small: 16px;
+  --padding-container-medium: 24px;
+  --padding-container-large: 32px;
   --typeface-family-headline: "Dela Gothic One";
   --typeface-family-text: "Inter";
   --typeface-family-decorative: "Roboto Mono";
@@ -115,6 +119,8 @@
     --padding-block-medium: 64px;
     --padding-block-large: 128px;
     --padding-block-huge: 256px;
+    --padding-container-medium: 20px;
+    --padding-container-large: 24px;
     --size-headline-hero: 128px;
     --size-headline-huge: 90px;
     --size-headline-large: 64px;
@@ -134,6 +140,8 @@
     --padding-block-medium: 48px;
     --padding-block-large: 96px;
     --padding-block-huge: 192px;
+    --padding-container-medium: 16px;
+    --padding-container-large: 20px;
     --size-headline-hero: 96px;
     --size-headline-huge: 72px;
     --size-headline-large: 56px;
@@ -159,6 +167,7 @@
     --padding-block-huge: 144px;
     --corners-tag: var(--radius-tiny);
     --padding-gap-media: 16px;
+    --padding-container-large: 16px;
     --typeface-family-headline: "Inter Tight";
     --size-headline-hero: 64px;
     --size-headline-huge: 52px;

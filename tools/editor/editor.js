@@ -283,6 +283,7 @@
       right: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8l-5 5-1.1-1.1 3-3.1H3V7.2h6.9l-3-3.1L8 3z"/></svg>',
       dup: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h8v9h-2V4H5zM3 5h7v9H3z"/></svg>',
       del: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l1 1h3v1.5H2V3h3zM3.5 6h9l-.7 8H4.2z"/></svg>',
+      set: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7.2a2 2 0 013.6 0H14v1.5h-1.2a2 2 0 01-3.6 0H2zM2 10.5h1.2a2 2 0 013.6 0H14V12H6.8a2 2 0 01-3.6 0H2z"/></svg>',
     };
     const nodes = el => [...el.children].filter(c => c.dataset && c.dataset.node);
     const gapOf = el => parseFloat(getComputedStyle(el)[getComputedStyle(el).flexDirection.startsWith('row') ? 'columnGap' : 'rowGap']) || 0;
@@ -317,8 +318,49 @@
     });
     document.addEventListener('click', e => {
       if (!pickerEl.hidden && !e.target.closest('.sc-picker, .sc-ins__btn, .sc-canvas__btn')) pickerEl.hidden = true;
+      if (!panelEl.hidden && !e.target.closest('.sc-panel, .sc-tb__btn--set')) panelEl.hidden = true;
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') pickerEl.hidden = true; });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { pickerEl.hidden = true; panelEl.hidden = true; } });
+
+    // ---- settings panel: the builder controls (data.controls) for a section and
+    // its container, or a column. Each change saves straight away.
+    const panelEl = document.createElement('div');
+    panelEl.className = 'sc-panel';
+    panelEl.hidden = true;
+    panelEl.setAttribute('role', 'dialog');
+    panelEl.setAttribute('aria-label', 'Settings');
+    document.body.appendChild(panelEl);
+    function openSettings(anchor, targets) {
+      panelEl.innerHTML = '';
+      for (const el of targets) {
+        const kind = el.dataset.kind;
+        const current = JSON.parse(el.dataset.settings || '{}');
+        const group = document.createElement('div');
+        group.className = 'sc-panel__group';
+        group.innerHTML = `<p class="sc-panel__name">${kind[0].toUpperCase() + kind.slice(1)}</p>`;
+        for (const control of data.controls[kind] || []) {
+          const now = current[control.key] ?? null;
+          const picked = Math.max(0, control.options.findIndex(o => o.value === now || (o.also || []).includes(now)));
+          const row = document.createElement('label');
+          row.className = 'sc-panel__row';
+          row.innerHTML = `<span class="sc-panel__label">${control.label}</span>`;
+          const sel = document.createElement('select');
+          sel.className = 'sc-panel__select';
+          sel.innerHTML = control.options.map((o, i) => `<option value="${i}"${i === picked ? ' selected' : ''}>${o.label}</option>`).join('');
+          sel.addEventListener('change', () => nodeAction({ action: 'settings', path: el.dataset.node, key: control.key,
+            value: control.options[Number(sel.value)].value }, `Changing ${control.label.toLowerCase()}…`));
+          row.appendChild(sel);
+          group.appendChild(row);
+        }
+        panelEl.appendChild(group);
+      }
+      panelEl.hidden = false;
+      const r = anchor.getBoundingClientRect();
+      const left = Math.max(16, Math.min(r.left, innerWidth - panelEl.offsetWidth - 16));
+      panelEl.style.left = `${left + scrollX}px`;
+      panelEl.style.top = `${r.bottom + scrollY + 8}px`;
+      panelEl.querySelector('select').focus();
+    }
 
     // ---- insertion strip: zero-size, in the flow; opens on hover.
     // `cancel` offsets the parent's flex gap so nothing moves until hover.
@@ -347,9 +389,9 @@
         if (it.label) { const s = document.createElement('span'); s.className = 'sc-tb__label'; s.textContent = it.label; tb.appendChild(s); continue; }
         if (it.select) { tb.appendChild(it.select); continue; }
         const b = document.createElement('button');
-        b.type = 'button'; b.className = 'sc-tb__btn'; b.innerHTML = it.icon; b.title = it.title;
+        b.type = 'button'; b.className = `sc-tb__btn${it.cls ? ` ${it.cls}` : ''}`; b.innerHTML = it.icon; b.title = it.title;
         b.setAttribute('aria-label', it.title); b.disabled = !!it.disabled;
-        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); it.run(); });
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); it.run(b); });
         tb.appendChild(b);
       }
       el.appendChild(tb);
@@ -365,8 +407,10 @@
     sections.forEach((sec, i) => {
       sec.after(addSectionStrip(i + 1));
       const path = sec.dataset.node;
+      const containers = nodes(sec).filter(k => k.dataset.kind === 'container');
       toolbar(sec, 'sc-tb--section', [
         { label: 'Section' },
+        { icon: ICON.set, title: 'Section settings', cls: 'sc-tb__btn--set', run: b => openSettings(b, [sec, ...containers]) },
         { icon: ICON.up, title: 'Move section up', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
         { icon: ICON.down, title: 'Move section down', disabled: i === sections.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
         { icon: ICON.dup, title: 'Duplicate section', run: () => nodeAction({ action: 'duplicate', path }, 'Duplicating…') },
@@ -384,6 +428,7 @@
         const sib = siblings(holder), i = sib.indexOf(holder);
         toolbar(holder, 'sc-tb--column', [
           { label: 'Column' },
+          { icon: ICON.set, title: 'Column settings', cls: 'sc-tb__btn--set', run: b => openSettings(b, [holder]) },
           { icon: ICON.left, title: 'Move column left', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
           { icon: ICON.right, title: 'Move column right', disabled: i === sib.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
           { icon: ICON.del, title: 'Delete column', run: () => confirmDelete('column', path) },

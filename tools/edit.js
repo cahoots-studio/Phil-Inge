@@ -9,7 +9,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
-const { ROOT, CONTENT, loadLibrary, loadPresets, findVariant, slotCount,
+const { ROOT, CONTENT, CONTROLS, loadLibrary, loadPresets, findVariant, slotCount,
   renderHome, renderProjects, renderProject, renderStyleguide } = require('./render');
 const { build } = require('./build');
 
@@ -311,6 +311,7 @@ async function frameCount(file) {
 //   add-component { path: container|column, index, component, variant }
 //   add-column    { path: container|column, index } or { path, side: start|end }
 //   delete | duplicate { path }    move { path, dir: -1|1 }    variant { path, variant }
+//   settings      { path, key, value }               a control from CONTROLS (render.js)
 async function saveNode(req) {
   const body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8'));
   if (!/^projects\/[a-z0-9-]+$/.test(body.doc || '')) throw new Error('Structure edits are on project pages');
@@ -406,6 +407,18 @@ async function saveNode(req) {
       const to = i + (Number(body.dir) < 0 ? -1 : 1);
       if (to < 0 || to >= list.length) throw new Error('Can’t move further');
       [list[i], list[to]] = [list[to], list[i]];
+      break;
+    }
+    case 'settings': {
+      // One control from the settings panel; only values listed in CONTROLS
+      const node = nodeAt(body.path);
+      const control = node && (CONTROLS[node.type] || []).find(c => c.key === body.key);
+      if (!control) throw new Error('Not a setting here');
+      const value = body.value === undefined ? null : body.value;
+      if (!control.options.some(o => o.value === value)) throw new Error(`“${value}” isn’t a ${control.label} option`);
+      const keys = control.key.split('.');
+      const holder = keys.slice(0, -1).reduce((o, k) => (o[k] = o[k] && typeof o[k] === 'object' ? o[k] : {}), node);
+      if (value === null) delete holder[keys.at(-1)]; else holder[keys.at(-1)] = value;
       break;
     }
     case 'variant': {

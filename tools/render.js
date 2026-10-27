@@ -392,12 +392,48 @@ ${rows}
 
 const tok = v => typeof v === 'string' && v.startsWith('$') ? `var(--${v.slice(1)})` : v;
 
+// ---------------------------------------------------------------- builder controls
+// What the editor's settings panel offers at each layout level, and the value
+// each option stores in the content JSON (see the builder control-surface handoff).
+// The server only accepts these values. `also` lists older values that mean the
+// same step. The page gutter (padding.x = Padding/Section/Global) is not a control:
+// every section has it, unless Bleed is on.
+const opt = (label, value, also) => ({ label, value, ...(also ? { also } : {}) });
+const CONTROLS = {
+  section: [
+    { key: 'padding.y', label: 'Padding Y', options: [
+      opt('Global', '$pad-section-global', ['$pad-section-gallery']), opt('None', '$padding-block-none'),
+      opt('Small', '$pad-section-small'), opt('Medium', '$padding-section-medium'), opt('Large', '$pad-section-large')] },
+    { key: 'minHeight', label: 'Section height', options: [
+      opt('Free', null), opt('Short', 'short'), opt('Medium', 'medium'), opt('Tall', 'tall')] },
+    { key: 'bleed', label: 'Bleed', options: [opt('Off', null), opt('On', true)] },
+  ],
+  container: [
+    { key: 'padding', label: 'Padding', options: [
+      opt('None', null), opt('Small', '$padding-container-small'),
+      opt('Medium', '$padding-container-medium'), opt('Large', '$padding-container-large')] },
+    { key: 'max', label: 'Max width', options: [
+      opt('Large', '$container-max'), opt('Medium', '$width-container-medium'),
+      opt('Small', '$width-container-small'), opt('Full', null)] },
+  ],
+  column: [
+    { key: 'gap', label: 'Gap', options: ['None', 'Tiny', 'Small', 'Medium', 'Large', 'Huge']
+      .map(s => opt(s, s === 'None' ? '$padding-gap-none' : `$gap-${s.toLowerCase()}`)) },
+    { key: 'width', label: 'Column sizing', options: [opt('Fill', 'fill', [null]), opt('Hug', 'hug'),
+      ...['Tightest', 'Tighter', 'Tight', 'Medium', 'Wide', 'Wider', 'Widest']
+        .map(s => opt(s, `$width-column-${s.toLowerCase()}`))] },
+  ],
+};
+
+// Section height → minimum height (content sits at the top)
+const MIN_HEIGHT = { short: '50svh', medium: '75svh', tall: '100svh' };
+
 function sizing(val, dim, isMain) {
   if (!val) return {};
   const [mode, weight] = String(val).trim().split(/\s+/);
   if (mode === 'fill') return isMain ? { flex: `${weight || 1} 1 0` } : { 'align-self': 'stretch' };
   if (mode === 'hug') return isMain ? { flex: 'none' } : { 'align-self': 'flex-start' };
-  return isMain ? { flex: 'none', [dim]: tok(val) } : { [dim]: tok(val) };
+  return isMain ? { flex: 'none', [dim]: tok(val), [`max-${dim}`]: '100%' } : { [dim]: tok(val) };
 }
 
 function nodeStyle(n, parentDir) {
@@ -407,9 +443,10 @@ function nodeStyle(n, parentDir) {
   if (n.padding) {
     const p = n.padding;
     st.padding = typeof p === 'object'
-      ? `${tok(p.top ?? p.y ?? 0)} ${tok(p.x ?? 0)} ${tok(p.bottom ?? p.y ?? 0)}`
+      ? `${tok(p.top ?? p.y ?? 0)} ${n.bleed ? 0 : tok(p.x ?? 0)} ${tok(p.bottom ?? p.y ?? 0)}`
       : tok(p);
   }
+  if (MIN_HEIGHT[n.minHeight]) st['min-height'] = MIN_HEIGHT[n.minHeight];
   if (n.align) st['align-items'] = n.align;
   if (n.justify) st['justify-content'] = n.justify;
   if (n.wrap) st['flex-wrap'] = 'wrap';
@@ -487,6 +524,10 @@ function editAttrs(n, env) {
   if (!env.c.edit || env.instance || !/^sections\./.test(env.path || '')) return '';
   let a = ` data-node="${env.path}" data-kind="${n.type}"`;
   if (n.type === 'instance') a += ` data-component="${esc(n.component)}" data-variant="${esc(JSON.stringify(n.variant || {}))}"`;
+  if (CONTROLS[n.type]) {
+    const current = Object.fromEntries(CONTROLS[n.type].map(({ key }) => [key, getPath(n, key) ?? null]));
+    a += ` data-settings="${esc(JSON.stringify(current))}"`;
+  }
   if ((n.type === 'container' || n.type === 'column') && !(n.children || []).length) a += ' data-empty-node';
   return a;
 }
@@ -661,6 +702,7 @@ function editData(doc, sections) {
     doc,
     sectionCount: (sections || []).length,
     library: Object.values(lib).map(d => ({ name: d.name, description: d.description || '', props: d.props })),
+    controls: CONTROLS,
   };
 }
 
@@ -685,7 +727,7 @@ ${sections}`);
 }
 
 module.exports = {
-  ROOT, CONTENT, MARKER,
+  ROOT, CONTENT, MARKER, CONTROLS,
   loadSite, loadLibrary, loadPresets, findVariant, slotCount, newSection, findInstance,
   renderHome, renderProjects, renderProject, renderStyleguide,
 };

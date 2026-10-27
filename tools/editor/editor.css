@@ -293,6 +293,39 @@ main > .sc-ins--y .sc-ins__btn { inset: 12px var(--pad-section-global); }
 }
 .sc-picker__opt:hover, .sc-picker__opt:focus-visible { background: #3a342b; outline: none; }
 
+/* ---------------------------------------------------------- settings panel */
+.sc-panel {
+  position: absolute;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  padding: 16px;
+  border-radius: 14px;
+  background: #24201a;
+  color: #f6f5f1;
+  box-shadow: 0 12px 40px rgb(36 32 26 / 0.3);
+}
+.sc-panel[hidden] { display: none; }
+.sc-panel__group { display: flex; flex-direction: column; gap: 6px; }
+.sc-panel__group + .sc-panel__group { padding-top: 16px; border-top: 1px solid #3a342b; }
+.sc-panel__name { margin-bottom: 4px; font: 600 11px/1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase; color: #a1998a; }
+.sc-panel__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; white-space: nowrap; font: 400 13px/1 var(--font-text); }
+.sc-panel__select {
+  flex: 0 1 150px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #645c4e;
+  border-radius: 8px;
+  background: #24201a;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 /* ---------------------------------------------------------- poster picker */
 .sc-slot__poster {
   position: absolute;

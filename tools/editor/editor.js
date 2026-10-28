@@ -283,7 +283,18 @@
       right: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8l-5 5-1.1-1.1 3-3.1H3V7.2h6.9l-3-3.1L8 3z"/></svg>',
       dup: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2h8v9h-2V4H5zM3 5h7v9H3z"/></svg>',
       del: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l1 1h3v1.5H2V3h3zM3.5 6h9l-.7 8H4.2z"/></svg>',
-      set: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7.2a2 2 0 013.6 0H14v1.5h-1.2a2 2 0 01-3.6 0H2zM2 10.5h1.2a2 2 0 013.6 0H14V12H6.8a2 2 0 01-3.6 0H2z"/></svg>',
+    };
+    // 12px chip icons (Figma: Doc · Structural Rule control chips)
+    const ci = d => `<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1">${d}</svg>`;
+    const CHIP = {
+      'padding.y': ci('<rect x="1.5" y="1.5" width="9" height="9" rx="1"/><path d="M1.5 4h9M1.5 8h9"/>'),
+      minHeight: ci('<path d="M6 1.5v9M4 3.5l2-2 2 2M4 8.5l2 2 2-2"/>'),
+      bleed: ci('<path d="M1 6h10M3 4L1 6l2 2M9 4l2 2-2 2"/>'),
+      padding: ci('<rect x="1.5" y="1.5" width="9" height="9" rx="1"/><rect x="4" y="4" width="4" height="4"/>'),
+      max: ci('<path d="M1.5 2v8M10.5 2v8M3.5 6h5"/>'),
+      gap: ci('<path d="M2 2v8M10 2v8M4.5 6h3"/>'),
+      width: ci('<path d="M1.5 6h9M3.5 4l-2 2 2 2M8.5 4l2 2-2 2"/>'),
+      variant: ci('<rect x="1.5" y="1.5" width="4" height="4"/><rect x="6.5" y="1.5" width="4" height="4"/><rect x="1.5" y="6.5" width="4" height="4"/><rect x="6.5" y="6.5" width="4" height="4"/>'),
     };
     const nodes = el => [...el.children].filter(c => c.dataset && c.dataset.node);
     const gapOf = el => parseFloat(getComputedStyle(el)[getComputedStyle(el).flexDirection.startsWith('row') ? 'columnGap' : 'rowGap']) || 0;
@@ -318,48 +329,40 @@
     });
     document.addEventListener('click', e => {
       if (!pickerEl.hidden && !e.target.closest('.sc-picker, .sc-ins__btn, .sc-canvas__btn')) pickerEl.hidden = true;
-      if (!panelEl.hidden && !e.target.closest('.sc-panel, .sc-tb__btn--set')) panelEl.hidden = true;
+      if (!menuEl.hidden && !e.target.closest('.sc-menu, .sc-chip')) closeMenu();
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { pickerEl.hidden = true; panelEl.hidden = true; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { pickerEl.hidden = true; closeMenu(); } });
 
-    // ---- settings panel: the builder controls (data.controls) for a section and
-    // its container, or a column. Each change saves straight away.
-    const panelEl = document.createElement('div');
-    panelEl.className = 'sc-panel';
-    panelEl.hidden = true;
-    panelEl.setAttribute('role', 'dialog');
-    panelEl.setAttribute('aria-label', 'Settings');
-    document.body.appendChild(panelEl);
-    function openSettings(anchor, targets) {
-      panelEl.innerHTML = '';
-      for (const el of targets) {
-        const kind = el.dataset.kind;
-        const current = JSON.parse(el.dataset.settings || '{}');
-        const group = document.createElement('div');
-        group.className = 'sc-panel__group';
-        group.innerHTML = `<p class="sc-panel__name">${kind[0].toUpperCase() + kind.slice(1)}</p>`;
-        for (const control of data.controls[kind] || []) {
-          const now = current[control.key] ?? null;
-          const picked = Math.max(0, control.options.findIndex(o => o.value === now || (o.also || []).includes(now)));
-          const row = document.createElement('label');
-          row.className = 'sc-panel__row';
-          row.innerHTML = `<span class="sc-panel__label">${control.label}</span>`;
-          const sel = document.createElement('select');
-          sel.className = 'sc-panel__select';
-          sel.innerHTML = control.options.map((o, i) => `<option value="${i}"${i === picked ? ' selected' : ''}>${o.label}</option>`).join('');
-          sel.addEventListener('change', () => nodeAction({ action: 'settings', path: el.dataset.node, key: control.key,
-            value: control.options[Number(sel.value)].value }, `Changing ${control.label.toLowerCase()}…`));
-          row.appendChild(sel);
-          group.appendChild(row);
-        }
-        panelEl.appendChild(group);
-      }
-      panelEl.hidden = false;
-      const r = anchor.getBoundingClientRect();
-      const left = Math.max(16, Math.min(r.left, innerWidth - panelEl.offsetWidth - 16));
-      panelEl.style.left = `${left + scrollX}px`;
-      panelEl.style.top = `${r.bottom + scrollY + 8}px`;
-      panelEl.querySelector('select').focus();
+    // ---- option menu: opens from a control chip; picking an option saves straight away
+    const menuEl = document.createElement('div');
+    menuEl.className = 'sc-menu';
+    menuEl.hidden = true;
+    menuEl.setAttribute('role', 'menu');
+    document.body.appendChild(menuEl);
+    let menuOwner = null;
+    function closeMenu() {
+      menuEl.hidden = true;
+      if (menuOwner) menuOwner.closest('[data-kind]').classList.remove('is-editing');
+      menuOwner = null;
+    }
+    function openMenu(chip, title, options, picked, onPick) {
+      if (menuOwner === chip) { closeMenu(); return; }
+      closeMenu();
+      menuOwner = chip;
+      chip.closest('[data-kind]').classList.add('is-editing');
+      menuEl.innerHTML = `<p class="sc-menu__name">${title}</p>` + options.map((label, i) =>
+        `<button type="button" role="menuitemradio" aria-checked="${i === picked}" class="sc-menu__opt" data-i="${i}">${label}</button>`).join('');
+      menuEl.querySelectorAll('.sc-menu__opt').forEach(b => b.addEventListener('click', () => {
+        const i = Number(b.dataset.i);
+        closeMenu();
+        if (i !== picked) onPick(i);
+      }));
+      menuEl.hidden = false;
+      const r = chip.getBoundingClientRect();
+      const left = Math.max(16, Math.min(r.right - menuEl.offsetWidth, innerWidth - menuEl.offsetWidth - 16));
+      menuEl.style.left = `${left + scrollX}px`;
+      menuEl.style.top = `${r.bottom + scrollY + 6}px`;
+      (menuEl.querySelector('[aria-checked="true"]') || menuEl.querySelector('.sc-menu__opt')).focus();
     }
 
     // ---- insertion strip: zero-size, in the flow; opens on hover.
@@ -380,21 +383,83 @@
       return { prop: index === 0 ? end : start, px };
     };
 
-    // ---- toolbar shown on hover of the innermost section / column / component
-    function toolbar(el, cls, items) {
+    // ---- hover chrome (Figma: Doc · Structural Rule): a dashed outline, the
+    // level's name on the top-left edge and its control chips on the top-right edge.
+    // Outlines and names show for every hovered level; chips only for the innermost.
+    function chrome(el, name, items) {
+      const tag = document.createElement('span');
+      tag.className = 'sc-name';
+      tag.textContent = name;
+      el.appendChild(tag);
       const tb = document.createElement('div');
-      tb.className = `sc-tb ${cls}`;
+      tb.className = 'sc-tb';
       tb.setAttribute('role', 'toolbar');
+      tb.setAttribute('aria-label', `${name} controls`);
       for (const it of items) {
-        if (it.label) { const s = document.createElement('span'); s.className = 'sc-tb__label'; s.textContent = it.label; tb.appendChild(s); continue; }
-        if (it.select) { tb.appendChild(it.select); continue; }
         const b = document.createElement('button');
-        b.type = 'button'; b.className = `sc-tb__btn${it.cls ? ` ${it.cls}` : ''}`; b.innerHTML = it.icon; b.title = it.title;
-        b.setAttribute('aria-label', it.title); b.disabled = !!it.disabled;
+        b.type = 'button';
+        b.className = `sc-chip${it.text ? '' : ' sc-chip--icon'}`;
+        b.innerHTML = it.icon + (it.text ? `<span>${it.text}</span>` : '');
+        b.title = it.title || it.text;
+        if (!it.text) b.setAttribute('aria-label', it.title);
+        b.disabled = !!it.disabled;
         b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); it.run(b); });
         tb.appendChild(b);
       }
       el.appendChild(tb);
+    }
+    // Which levels are "hovered": the node under the pointer and its ancestors.
+    // Tracked here rather than with :hover so the chrome holds still while the
+    // pointer is on a chip (moving onto an outer level's chip would otherwise
+    // drop the inner level and shift everything) or while a menu is open.
+    let lit = [];
+    function light(target) {
+      const chain = [];
+      for (let n = target && target.closest('[data-kind]'); n; n = n.parentElement && n.parentElement.closest('[data-kind]')) chain.unshift(n);
+      if (chain.length === lit.length && chain.every((n, i) => n === lit[i])) return;
+      lit.forEach(n => n.classList.remove('is-lit'));
+      chain.forEach(n => n.classList.add('is-lit'));
+      lit = chain;
+      untangle();
+    }
+    document.addEventListener('pointerover', e => {
+      if (menuEl.hidden && !e.target.closest('.sc-tb, .sc-name')) light(e.target);
+    });
+    document.documentElement.addEventListener('pointerleave', () => { if (menuEl.hidden) light(null); });
+
+    // Nested levels often share an edge (a container that exactly wraps its
+    // component), so inner name tags move right and inner chip rows move left
+    // until nothing covers the outer level's.
+    function untangle() {
+      const placed = [];
+      for (const el of lit) {
+        for (const part of el.querySelectorAll(':scope > .sc-name, :scope > .sc-tb')) {
+          part.style.translate = '';
+          const r = part.getBoundingClientRect();
+          const isTag = part.classList.contains('sc-name');
+          let dx = 0;
+          for (let n = 0; n < 20; n++) {
+            const hit = placed.find(p => r.left + dx < p.right && r.right + dx > p.left && r.top < p.bottom && r.bottom > p.top);
+            if (!hit) break;
+            dx = isTag ? hit.right + 10 - r.left : hit.left - 10 - r.right;
+          }
+          if (dx) part.style.translate = `${dx}px 0`;
+          placed.push({ left: r.left + dx, right: r.right + dx, top: r.top, bottom: r.bottom });
+        }
+      }
+    }
+
+    // Chips for this level's builder controls (data.controls, from render.js)
+    function controlChips(el) {
+      const current = JSON.parse(el.dataset.settings || '{}');
+      return (data.controls[el.dataset.kind] || []).map(control => {
+        const now = current[control.key] ?? null;
+        const picked = Math.max(0, control.options.findIndex(o => o.value === now || (o.also || []).includes(now)));
+        return { icon: CHIP[control.key] || CHIP.variant, text: control.chip || control.label, title: control.label,
+          run: chip => openMenu(chip, control.label, control.options.map(o => o.label), picked, i =>
+            nodeAction({ action: 'settings', path: el.dataset.node, key: control.key, value: control.options[i].value },
+              `Changing ${control.label.toLowerCase()}…`)) };
+      });
     }
     const siblings = el => nodes(el.parentElement);
     const confirmDelete = (what, path) => { if (confirm(`Delete this ${what}? Any media in it is removed too.`)) nodeAction({ action: 'delete', path }, 'Deleting…'); };
@@ -407,10 +472,8 @@
     sections.forEach((sec, i) => {
       sec.after(addSectionStrip(i + 1));
       const path = sec.dataset.node;
-      const containers = nodes(sec).filter(k => k.dataset.kind === 'container');
-      toolbar(sec, 'sc-tb--section', [
-        { label: 'Section' },
-        { icon: ICON.set, title: 'Section settings', cls: 'sc-tb__btn--set', run: b => openSettings(b, [sec, ...containers]) },
+      chrome(sec, 'Section', [
+        ...controlChips(sec),
         { icon: ICON.up, title: 'Move section up', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
         { icon: ICON.down, title: 'Move section down', disabled: i === sections.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
         { icon: ICON.dup, title: 'Duplicate section', run: () => nodeAction({ action: 'duplicate', path }, 'Duplicating…') },
@@ -424,11 +487,11 @@
       const kids = nodes(holder);
       const isRow = kids.some(k => k.dataset.kind === 'column');
 
+      if (holder.dataset.kind === 'container') chrome(holder, 'Container', controlChips(holder));
       if (holder.dataset.kind === 'column') {
         const sib = siblings(holder), i = sib.indexOf(holder);
-        toolbar(holder, 'sc-tb--column', [
-          { label: 'Column' },
-          { icon: ICON.set, title: 'Column settings', cls: 'sc-tb__btn--set', run: b => openSettings(b, [holder]) },
+        chrome(holder, 'Column', [
+          ...controlChips(holder),
           { icon: ICON.left, title: 'Move column left', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
           { icon: ICON.right, title: 'Move column right', disabled: i === sib.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
           { icon: ICON.del, title: 'Delete column', run: () => confirmDelete('column', path) },
@@ -472,23 +535,18 @@
       const def = data.library.find(d => d.name === inst.dataset.component);
       const variant = JSON.parse(inst.dataset.variant || '{}');
       const sib = siblings(inst), i = sib.indexOf(inst);
-      const items = [{ label: inst.dataset.component }];
-      for (const [prop, values] of Object.entries((def && def.props) || {})) {
-        const sel = document.createElement('select');
-        sel.className = 'sc-tb__select';
-        sel.setAttribute('aria-label', `${inst.dataset.component} ${prop}`);
-        sel.innerHTML = values.map(v => `<option${variant[prop] === v ? ' selected' : ''}>${v}</option>`).join('');
-        sel.addEventListener('click', e => e.stopPropagation());
-        sel.addEventListener('change', () => nodeAction({ action: 'variant', path, variant: { [prop]: sel.value } }, 'Changing layout…'));
-        items.push({ select: sel });
-      }
+      const items = Object.entries((def && def.props) || {}).map(([prop, values]) => ({
+        icon: CHIP.variant, text: prop, title: `${inst.dataset.component} ${prop}`,
+        run: chip => openMenu(chip, prop, values, Math.max(0, values.indexOf(variant[prop])), i =>
+          nodeAction({ action: 'variant', path, variant: { [prop]: values[i] } }, 'Changing layout…')),
+      }));
       items.push(
         { icon: ICON.up, title: 'Move up', disabled: i === 0, run: () => nodeAction({ action: 'move', path, dir: -1 }, 'Moving…') },
         { icon: ICON.down, title: 'Move down', disabled: i === sib.length - 1, run: () => nodeAction({ action: 'move', path, dir: 1 }, 'Moving…') },
         { icon: ICON.dup, title: 'Duplicate', run: () => nodeAction({ action: 'duplicate', path }, 'Duplicating…') },
         { icon: ICON.del, title: 'Delete', run: () => confirmDelete('component', path) },
       );
-      toolbar(inst, 'sc-tb--component', items);
+      chrome(inst, inst.dataset.component, items);
     });
   }
 

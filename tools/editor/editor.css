@@ -210,59 +210,56 @@ main > .sc-ins--y .sc-ins__btn { inset: 12px var(--pad-section-global); }
 .sc-canvas__btn::before { content: '+'; margin-right: 8px; font-weight: 400; }
 .sc-canvas__btn:hover { background: var(--sc-line); }
 
-/* toolbars: only the innermost hovered section / column / component */
+/* hover chrome (Figma: Doc · Structural Rule). The page looks as a visitor
+   sees it; hovering a section, container, column or component draws a dashed
+   outline with its name on the top-left edge and control chips on the
+   top-right edge, for every hovered level (editor.js marks them .is-lit). editor.js nudges tags and chip rows
+   sideways where nested levels share an edge. */
+:root { --sc-chrome-line: #a1998a; --sc-chip-bg: #ece9e3; --sc-chip-ink: #24201a; }
 [data-kind="instance"] { position: relative; }
+[data-kind]:is(.is-lit, .is-editing, :focus-within) { outline: 1px dashed var(--sc-chrome-line); outline-offset: -1px; }
+.sc-name,
 .sc-tb {
   position: absolute;
-  top: 12px;
-  z-index: 26;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 999px;
-  background: #24201a;
-  color: #f6f5f1;
-  font: 400 12px/1 var(--font-text);
-  box-shadow: 0 4px 16px rgb(36 32 26 / 0.2);
+  z-index: 31; /* above the insertion strips (30), whose hit zones reach the edges */
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity 0.15s ease;
 }
-.sc-tb--section, .sc-tb--column { left: 12px; }
-.sc-tb--component { right: 12px; }
-[data-kind]:hover > .sc-tb,
-.sc-tb:focus-within { opacity: 1; pointer-events: auto; transform: none; }
-[data-kind]:has([data-kind]:hover, .sc-ins:hover, .sc-edge:hover) > .sc-tb { opacity: 0; pointer-events: none; }
-.sc-tb__label { padding: 0 8px 0 10px; font-weight: 600; }
-.sc-tb__select {
-  height: 26px;
-  margin-right: 2px;
-  padding: 0 8px;
-  border: 1px solid #645c4e;
-  border-radius: 999px;
-  background: #24201a;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.sc-name {
+  top: -7px;
+  left: 12px;
+  padding: 0 4px;
+  background: var(--sc-chip-bg);
+  color: var(--sc-chip-ink);
+  font: 500 10px/13px var(--font-text);
+  white-space: nowrap;
 }
-.sc-tb__btn {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
+.sc-tb { top: -8px; right: 12px; display: flex; gap: 6px; }
+[data-kind]:is(.is-lit, .is-editing, :focus-within) > .sc-name { opacity: 1; }
+[data-kind]:is(.is-lit, .is-editing, :focus-within) > .sc-tb { opacity: 1; pointer-events: auto; }
+[data-kind]:has(.sc-ins:hover, .sc-edge:hover) > :is(.sc-name, .sc-tb) { opacity: 0; pointer-events: none; }
+/* outer levels step back so the innermost level's tag and chips read first */
+.is-lit:has(.is-lit) > :is(.sc-name, .sc-tb:not(:hover)) { opacity: 0.5; }
+.sc-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 15px;
+  padding: 1px 4px;
   border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: inherit;
+  border-radius: 0;
+  background: var(--sc-chip-bg);
+  color: var(--sc-chip-ink);
+  font: 500 10px/13px var(--font-text);
+  white-space: nowrap;
   cursor: pointer;
 }
-.sc-tb__btn svg { width: 14px; height: 14px; fill: currentColor; }
-.sc-tb__btn:hover:not(:disabled) { background: #3a342b; }
-.sc-tb__btn:disabled { opacity: 0.3; cursor: default; }
-.sc-tb__btn:focus-visible, .sc-tb__select:focus-visible { outline: 2px solid var(--sc-line); outline-offset: 1px; }
+.sc-chip svg { flex: none; width: 12px; height: 12px; }
+.sc-chip--icon svg { fill: currentColor; stroke: none; }
+.sc-chip:hover, .sc-chip[aria-expanded="true"] { background: var(--sc-chip-ink); color: var(--sc-chip-bg); }
+.sc-chip:disabled { opacity: 0.4; cursor: default; background: var(--sc-chip-bg); color: var(--sc-chip-ink); }
+.sc-chip:focus-visible { outline: 1px solid var(--color-electric-violet); outline-offset: 1px; }
 
 /* component picker */
 .sc-picker {
@@ -293,38 +290,39 @@ main > .sc-ins--y .sc-ins__btn { inset: 12px var(--pad-section-global); }
 }
 .sc-picker__opt:hover, .sc-picker__opt:focus-visible { background: #3a342b; outline: none; }
 
-/* ---------------------------------------------------------- settings panel */
-.sc-panel {
+/* ---------------------------------------------------------- option menu (from a chip) */
+.sc-menu {
   position: absolute;
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 300px;
-  max-width: calc(100vw - 32px);
-  padding: 16px;
-  border-radius: 14px;
+  gap: 1px;
+  min-width: 140px;
+  padding: 6px;
+  border-radius: 8px;
   background: #24201a;
   color: #f6f5f1;
   box-shadow: 0 12px 40px rgb(36 32 26 / 0.3);
 }
-.sc-panel[hidden] { display: none; }
-.sc-panel__group { display: flex; flex-direction: column; gap: 6px; }
-.sc-panel__group + .sc-panel__group { padding-top: 16px; border-top: 1px solid #3a342b; }
-.sc-panel__name { margin-bottom: 4px; font: 600 11px/1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase; color: #a1998a; }
-.sc-panel__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; white-space: nowrap; font: 400 13px/1 var(--font-text); }
-.sc-panel__select {
-  flex: 0 1 150px;
-  min-width: 0;
-  height: 28px;
-  padding: 0 8px;
-  border: 1px solid #645c4e;
-  border-radius: 8px;
-  background: #24201a;
+.sc-menu[hidden] { display: none; }
+.sc-menu__name { padding: 4px 8px 6px; font: 600 10px/1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase; color: #a1998a; }
+.sc-menu__opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
   color: inherit;
-  font: inherit;
+  font: 400 13px/1 var(--font-text);
+  text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
+.sc-menu__opt::before { content: ''; width: 10px; text-align: center; }
+.sc-menu__opt[aria-checked="true"]::before { content: '✓'; }
+.sc-menu__opt:hover, .sc-menu__opt:focus-visible { background: #3a342b; outline: none; }
 
 /* ---------------------------------------------------------- poster picker */
 .sc-slot__poster {

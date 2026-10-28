@@ -404,7 +404,7 @@ const CONTROLS = {
     { key: 'padding.y', label: 'Padding Y', options: [
       opt('Global', '$pad-section-global', ['$pad-section-gallery']), opt('None', '$padding-block-none'),
       opt('Small', '$pad-section-small'), opt('Medium', '$padding-section-medium'), opt('Large', '$pad-section-large')] },
-    { key: 'minHeight', label: 'Section height', options: [
+    { key: 'minHeight', label: 'Section height', chip: 'Height', options: [
       opt('Free', null), opt('Short', 'short'), opt('Medium', 'medium'), opt('Tall', 'tall')] },
     { key: 'bleed', label: 'Bleed', options: [opt('Off', null), opt('On', true)] },
   ],
@@ -419,7 +419,7 @@ const CONTROLS = {
   column: [
     { key: 'gap', label: 'Gap', options: ['None', 'Tiny', 'Small', 'Medium', 'Large', 'Huge']
       .map(s => opt(s, s === 'None' ? '$padding-gap-none' : `$gap-${s.toLowerCase()}`)) },
-    { key: 'width', label: 'Column sizing', options: [opt('Fill', 'fill', [null]), opt('Hug', 'hug'),
+    { key: 'width', label: 'Column sizing', chip: 'Sizing', options: [opt('Fill', 'fill', [null]), opt('Hug', 'hug'),
       ...['Tightest', 'Tighter', 'Tight', 'Medium', 'Wide', 'Wider', 'Widest']
         .map(s => opt(s, `$width-column-${s.toLowerCase()}`))] },
   ],

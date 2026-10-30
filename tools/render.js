@@ -299,7 +299,8 @@ ${navList(navColumns(c, projects), 'site-footer', '        ')}
 
   <script src="${c.p}js/nav.js" defer></script>
   <script src="${c.p}js/contact.js" defer></script>
-  <script src="${c.p}js/media.js" defer></script>${c.edit ? `
+  <script src="${c.p}js/media.js" defer></script>
+  <script src="${c.p}js/top.js" defer></script>${c.edit ? `
   <script src="/tools/editor/editor.js" defer></script>` : ''}
 </body>
 </html>
@@ -750,7 +751,7 @@ function renderTop(c, doc, data, type, bind) {
     { type: 'instance', component: 'Top', variant: { Type: type }, bind },
   ] }] };
   const html = renderNode(tree, { c, doc, lib, data, path: 'top' }, null, 2);
-  return html.replace('<section ', '<section data-top ');
+  return html.replace('<section ', `<section data-top="${slug(type)}" `);
 }
 
 function renderSections(c, doc, sections) {

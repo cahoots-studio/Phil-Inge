@@ -538,6 +538,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .tag--yellow { border-color: var(--color-yellow); }
 .tag--pink   { border-color: var(--color-pink); }
 .tag--green  { border-color: var(--color-green); }
+.sc-tag--pill { border-radius: var(--radius-round); }
 
 /* ==========================================================================
    Shared: media frame + project summary (tags + short description)
@@ -688,7 +689,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   color: var(--scheme-text);
 }
 .sc-button--secondary:hover { background: transparent; }
-.sc-button--link {
+.sc-button--tertiary {
   min-height: 0;
   padding: var(--pad-control-tiny);
   border: 0;
@@ -696,7 +697,7 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
   color: var(--scheme-text);
 }
 /* Hover widens to 4/8 padding in Figma; the negative margin keeps it from shifting */
-.sc-button--link:hover {
+.sc-button--tertiary:hover {
   padding-inline: var(--gap-tiny);
   margin-inline: calc(var(--pad-control-tiny) - var(--gap-tiny));
   background:

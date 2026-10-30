@@ -447,6 +447,7 @@ function nodeStyle(n, parentDir) {
       : tok(p);
   }
   if (MIN_HEIGHT[n.minHeight]) st['min-height'] = MIN_HEIGHT[n.minHeight];
+  if (n.textAlign) st['text-align'] = n.textAlign;
   if (n.align) st['align-items'] = n.align;
   if (n.justify) st['justify-content'] = n.justify;
   if (n.wrap) st['flex-wrap'] = 'wrap';
@@ -497,6 +498,75 @@ const SIZES = {
 };
 const slug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
+// ---------------------------------------------------------------- block controls
+// Per-instance settings for the blocks inside a component (handoff §4), stored on
+// the instance as blocks: { <block id>: { key: value } } and laid over the
+// library tree when it renders. A block's id is its field ("headline", "primary"),
+// "media.<slot>" for media, or "actions" for the Action Row. A missing setting
+// means the library's own value.
+const ALIGN = [opt('Left', null, ['left']), opt('Centre', 'center'), opt('Right', 'right')];
+// Action Row patterns → the priority of each button slot (null = slot hidden)
+const PATTERNS = {
+  'Primary + Secondary': ['Primary', 'Secondary'],
+  'Secondary + Tertiary': ['Secondary', 'Tertiary'],
+  'Primary': ['Primary', null],
+  'Secondary': ['Secondary', null],
+  'Tertiary': ['Tertiary', null],
+  'Email Capture': 'email',
+};
+const BLOCK_CONTROLS = {
+  tag: [
+    { key: 'shape', label: 'Shape', options: [opt('Rounded', null), opt('Pill', 'pill')] },
+    { key: 'color', label: 'Accent', options: Object.keys(TAG_COLOR).map((c, i) => opt(c, c, i ? null : ['Default'])) },
+  ],
+  headline: [
+    { key: 'size', label: 'Level', options: SIZES.headline.map(v => opt(v, v)) },
+    { key: 'textAlign', label: 'Align', options: ALIGN },
+  ],
+  text: [
+    { key: 'size', label: 'Size', options: SIZES.text.map(v => opt(v, v)) },
+    { key: 'textAlign', label: 'Align', options: ALIGN },
+  ],
+  actions: [{ key: 'pattern', label: 'Pattern', options: Object.keys(PATTERNS).map(p => opt(p, p)) }],
+  button: [{ key: 'priority', label: 'Priority', options: [opt('Primary', 'Primary'), opt('Secondary', 'Secondary'), opt('Tertiary', 'Tertiary', ['Link'])] }],
+  media: [{ key: 'radius', label: 'Corners', options: [opt('None', '$radius-none'), opt('Small', '$radius-small'),
+    opt('Medium', '$radius-medium', [null]), opt('Large', '$radius-large'), opt('Huge', '$radius-huge')] }],
+};
+const BLOCK_NAME = { tag: 'Tag', headline: 'Headline', text: 'Text', actions: 'Action Row', button: 'Button', media: 'Media' };
+
+function blockId(n) {
+  if (n.type === 'media' && Number.isInteger(n.slot)) return `media.${n.slot}`;
+  if (n.type === 'actions') return 'actions';
+  return BLOCK_CONTROLS[n.type] && n.field ? n.field : null;
+}
+
+// The block with this id in a component tree
+function findBlock(tree, id) {
+  if (blockId(tree) === id) return tree;
+  for (const ch of tree.children || []) { const hit = findBlock(ch, id); if (hit) return hit; }
+  return null;
+}
+
+// Which Action Row pattern the buttons currently show ("" when customised).
+// `children` are the row's children with the pattern already applied.
+function patternOf(children, env) {
+  const shown = children.filter(c => c.type === 'button').map(b => {
+    if (b.hidden) return null;
+    const p = ((env.instance.blocks || {})[b.field] || {}).priority || b.priority;
+    return p === 'Link' ? 'Tertiary' : p;
+  });
+  return Object.keys(PATTERNS).find(p => Array.isArray(PATTERNS[p]) && PATTERNS[p].every((v, i) => v === (shown[i] ?? null))) || '';
+}
+
+// Edit mode only: hooks for a block's hover chrome (instances on project pages)
+function blockAttrs(n, env, extra = {}) {
+  const id = blockId(n);
+  const inst = env.instance;
+  if (!env.c.edit || !id || !inst || inst.bind || !/^sections\./.test(inst.path || '')) return '';
+  const current = Object.fromEntries(BLOCK_CONTROLS[n.type].map(({ key }) => [key, n[key] ?? null]));
+  return ` data-kind="block" data-block="${esc(id)}" data-block-type="${n.type}" data-instance="${inst.path}" data-settings="${esc(JSON.stringify({ ...current, ...extra }))}"`;
+}
+
 // → { value, target } for a text-bearing block
 function blockText(n, env) {
   const b = n.field && bound(env, n.field);
@@ -540,12 +610,16 @@ function renderNode(n, env, parentDir, depth) {
     .map((ch, i) => renderNode(ch, { ...childEnv, path: `${childEnv.path}.children.${i}` }, dir, depth + 1))
     .join('\n');
 
+  // A block inside a component takes the instance's settings for it
+  const own = env.instance && env.instance.blocks && blockId(n) && env.instance.blocks[blockId(n)];
+  if (own) n = { ...n, ...own };
+
   switch (n.type) {
     case 'instance': {
       const def = env.lib[n.component];
       if (!def) throw new Error(`Unknown component "${n.component}" in ${env.doc}`);
       const { tree } = findVariant(def, n.variant);
-      const html = renderNode(tree, { ...env, instance: { content: n.content || {}, path: env.path, bind: n.bind } }, parentDir, depth);
+      const html = renderNode(tree, { ...env, instance: { content: n.content || {}, blocks: n.blocks || {}, path: env.path, bind: n.bind } }, parentDir, depth);
       const attrs = editAttrs(n, env);
       return attrs ? html.replace(/^(\s*<[a-z0-9]+)/, `$1${attrs}`) : html;
     }
@@ -563,7 +637,7 @@ function renderNode(n, env, parentDir, depth) {
         m = n.src !== undefined ? { src: n.src, alt: n.alt } : null;
         target = env.path;
       }
-      return `${pad}<div class="media sc-media"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}>${img(env.c, m, { lazy: !b })}</div>`;
+      return `${pad}<div class="media sc-media"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}${blockAttrs(n, env)}>${img(env.c, m, { lazy: !b })}</div>`;
     }
     case 'headline': {
       const { value, target } = blockText(n, env);
@@ -573,12 +647,12 @@ function renderNode(n, env, parentDir, depth) {
       const body = n.accent === 'end' && value.length > 1
         ? `${esc(value.slice(0, -1))}<span class="sc-accent">${esc(value.slice(-1))}</span>`
         : esc(value);
-      return `${pad}<${level} class="sc-headline sc-headline--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${body}</${level}>`;
+      return `${pad}<${level} class="sc-headline sc-headline--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}${blockAttrs(n, env)}>${body}</${level}>`;
     }
     case 'text': {
       const { value, target } = blockText(n, env);
       const size = SIZES.text.includes(n.size) ? n.size : 'Small';
-      return `${pad}<p class="sc-text sc-text--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</p>`;
+      return `${pad}<p class="sc-text sc-text--${slug(size)}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}${blockAttrs(n, env)}>${esc(value)}</p>`;
     }
     case 'label': {
       const { value, target } = blockText(n, env);
@@ -586,7 +660,7 @@ function renderNode(n, env, parentDir, depth) {
     }
     case 'tag': {
       const { value, target } = blockText(n, env);
-      return `${pad}<span class="tag tag--${tagClass(n.color)} sc-tag"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+      return `${pad}<span class="tag tag--${tagClass(n.color)} sc-tag${n.shape === 'pill' ? ' sc-tag--pill' : ''}"${nodeStyle(n, parentDir)}${env.c.t(env.doc, target)}${blockAttrs(n, env)}>${esc(value)}</span>`;
     }
     case 'tags': {
       // A list of tags: [{ label, color }]
@@ -600,13 +674,17 @@ ${(list || []).map((t, i) => `${pad}  <li class="tag tag--${tagClass(t.color)}"$
 ${pad}</ul>`;
     }
     case 'button': {
+      if (n.hidden) return '';
       const { value, target } = blockText(n, env);
-      const priority = ['Primary', 'Secondary', 'Link'].includes(n.priority) ? n.priority : 'Primary';
+      // Figma: Button Priority Primary | Secondary | Tertiary ("Link" is the old name)
+      const p = n.priority === 'Link' ? 'Tertiary' : n.priority;
+      const priority = ['Primary', 'Secondary', 'Tertiary'].includes(p) ? p : 'Primary';
       const cls = `sc-button sc-button--${slug(priority)}${n.round ? ' sc-button--round' : ''}`;
       const label = `<span${env.c.t(env.doc, target)}>${esc(value)}</span>`;
+      const hooks = blockAttrs({ ...n, priority }, env);
       return n.submit
-        ? `${pad}<button class="${cls}" type="submit"${nodeStyle(n, parentDir)}>${label}</button>`
-        : `${pad}<a class="${cls}" href="${esc(blockHref(n, env))}"${nodeStyle(n, parentDir)}>${label}</a>`;
+        ? `${pad}<button class="${cls}" type="submit"${nodeStyle(n, parentDir)}${hooks}>${label}</button>`
+        : `${pad}<a class="${cls}" href="${esc(blockHref(n, env))}"${nodeStyle(n, parentDir)}${hooks}>${label}</a>`;
     }
     case 'field': {
       // Figma: Input — Field Type Basic | Email | Long Form
@@ -624,10 +702,29 @@ ${pad}</label>`;
     }
     case 'actions': {
       // Figma: Action Row — Action Type Buttons | Email Capture
-      const isForm = n.actionType === 'Email Capture';
+      // A pattern (block setting) sets each button slot's priority, or hides it;
+      // per-button settings then apply on top.
+      const plan = PATTERNS[n.pattern];
+      let children = n.children;
+      if (Array.isArray(plan)) {
+        let slot = 0;
+        children = children.map(c => c.type !== 'button' ? c : (p => p ? { ...c, priority: p } : { ...c, hidden: true })(plan[slot++]));
+      }
+      const isForm = plan === 'email' || n.actionType === 'Email Capture';
+      const hooks = env.instance ? blockAttrs(n, env, { pattern: isForm ? 'Email Capture' : patternOf(children, env) }) : '';
+      if (plan === 'email') {
+        // Email Capture made from the row's first button (its text stays editable)
+        const first = children.find(c => c.type === 'button');
+        const field = `${pad}  <label class="sc-field sc-field--email"><span class="sc-field__label">Email</span><input class="sc-field__input" type="email" name="email" placeholder="email@yourdomain.com" autocomplete="email" required></label>`;
+        return `${pad}<form class="sc-actions sc-actions--email-capture" name="email-capture" method="POST" data-netlify="true"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${hooks}>
+${pad}  <input type="hidden" name="form-name" value="email-capture">
+${field}
+${first ? renderNode({ ...first, priority: 'Primary', round: true, submit: true }, { ...env, path: `${env.path}.children.0` }, dir, depth + 1) : ''}
+${pad}</form>`;
+      }
       const tag = isForm ? 'form' : 'div';
-      return `${pad}<${tag} class="sc-actions sc-actions--${isForm ? 'email-capture' : 'buttons'}"${nodeAttrs(n)}${nodeStyle(n, parentDir)}>
-${kids(n.children)}
+      return `${pad}<${tag} class="sc-actions sc-actions--${isForm ? 'email-capture' : 'buttons'}"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${hooks}>
+${kids(children)}
 ${pad}</${tag}>`;
     }
     case 'section':
@@ -674,7 +771,7 @@ function renderStyleguide(opts = {}) {
     ...SIZES.text.map(size => ({ type: 'text', size, text: `${size} text — this is a bit of ${size.toLowerCase()} text. It should be one to two sentences.` })),
     { type: 'label', text: 'Label' },
     { type: 'container', direction: 'row', gap: '$gap-small', children: Object.keys(TAG_COLOR).map(color => ({ type: 'tag', color, text: color })) },
-    { type: 'container', direction: 'row', wrap: true, gap: '$gap-medium', align: 'center', children: ['Primary', 'Secondary', 'Link'].map(priority => ({ type: 'button', priority, text: priority === 'Link' ? 'Link Text' : 'Button Text' })) },
+    { type: 'container', direction: 'row', wrap: true, gap: '$gap-medium', align: 'center', children: ['Primary', 'Secondary', 'Tertiary'].map(priority => ({ type: 'button', priority, text: priority === 'Tertiary' ? 'Link Text' : 'Button Text' })) },
     { type: 'actions', children: [{ type: 'button', priority: 'Primary', text: 'Button Text' }, { type: 'button', priority: 'Secondary', text: 'Button Text' }] },
     { type: 'actions', actionType: 'Email Capture', align: 'center', children: [{ type: 'field', fieldType: 'Email', label: 'Email' }, { type: 'button', priority: 'Primary', round: true, submit: true, text: 'Submit' }] },
     ...['Basic', 'Email', 'Long Form'].map(fieldType => ({ type: 'field', fieldType, label: `${fieldType} field` })),
@@ -703,6 +800,8 @@ function editData(doc, sections) {
     sectionCount: (sections || []).length,
     library: Object.values(lib).map(d => ({ name: d.name, description: d.description || '', props: d.props })),
     controls: CONTROLS,
+    blockControls: BLOCK_CONTROLS,
+    blockNames: BLOCK_NAME,
   };
 }
 
@@ -727,7 +826,7 @@ ${sections}`);
 }
 
 module.exports = {
-  ROOT, CONTENT, MARKER, CONTROLS,
+  ROOT, CONTENT, MARKER, CONTROLS, BLOCK_CONTROLS, PATTERNS, blockId, findBlock,
   loadSite, loadLibrary, loadPresets, findVariant, slotCount, newSection, findInstance,
   renderHome, renderProjects, renderProject, renderStyleguide,
 };

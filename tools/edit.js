@@ -9,7 +9,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFile } = require('child_process');
-const { ROOT, CONTENT, CONTROLS, loadLibrary, loadPresets, findVariant, slotCount,
+const { ROOT, CONTENT, CONTROLS, BLOCK_CONTROLS, blockId, findBlock, loadLibrary, loadPresets, findVariant, slotCount,
   renderHome, renderProjects, renderProject, renderStyleguide } = require('./render');
 const { build } = require('./build');
 
@@ -312,6 +312,7 @@ async function frameCount(file) {
 //   add-column    { path: container|column, index } or { path, side: start|end }
 //   delete | duplicate { path }    move { path, dir: -1|1 }    variant { path, variant }
 //   settings      { path, key, value }               a control from CONTROLS (render.js)
+//   block         { path: instance, block, key, value }   a block control from BLOCK_CONTROLS
 async function saveNode(req) {
   const body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8'));
   if (!/^projects\/[a-z0-9-]+$/.test(body.doc || '')) throw new Error('Structure edits are on project pages');
@@ -421,6 +422,28 @@ async function saveNode(req) {
       if (value === null) delete holder[keys.at(-1)]; else holder[keys.at(-1)] = value;
       break;
     }
+    case 'block': {
+      // A setting for one block inside a component, stored on the instance
+      const node = nodeAt(body.path);
+      const def = node && node.type === 'instance' && lib[node.component];
+      if (!def) throw new Error('Not a component');
+      const tree = findVariant(def, node.variant).tree;
+      const block = findBlock(tree, String(body.block || ''));
+      const control = block && (BLOCK_CONTROLS[block.type] || []).find(c => c.key === body.key);
+      if (!control) throw new Error('Not a setting for this block');
+      const value = body.value === undefined ? null : body.value;
+      if (!control.options.some(o => o.value === value)) throw new Error(`“${value}” isn’t a ${control.label} option`);
+      node.blocks = node.blocks || {};
+      const own = node.blocks[body.block] = node.blocks[body.block] || {};
+      if (value === null) delete own[body.key]; else own[body.key] = value;
+      if (block.type === 'actions') {
+        // A new pattern starts the buttons over
+        (block.children || []).forEach(b => { if (b.type === 'button' && node.blocks[b.field]) delete node.blocks[b.field].priority; });
+      }
+      for (const [id, o] of Object.entries(node.blocks)) if (!Object.keys(o).length) delete node.blocks[id];
+      if (!Object.keys(node.blocks).length) delete node.blocks;
+      break;
+    }
     case 'variant': {
       const node = nodeAt(body.path);
       const def = node && node.type === 'instance' && lib[node.component];
@@ -437,6 +460,43 @@ async function saveNode(req) {
   cleanupUploads(removed);
   build();
   return { ok: true };
+}
+
+// Media already uploaded to the site, newest first (posters are paired with their video)
+function listUploads() {
+  const base = path.join(ROOT, 'assets', 'uploads');
+  if (!fs.existsSync(base)) return [];
+  const out = [];
+  for (const dir of fs.readdirSync(base)) {
+    const abs = path.join(base, dir);
+    if (dir.startsWith('.') || !fs.statSync(abs).isDirectory()) continue;
+    const files = fs.readdirSync(abs).filter(f => !f.startsWith('.'));
+    for (const f of files) {
+      if (/-poster\.jpg$/.test(f)) continue;
+      const src = `assets/uploads/${dir}/${f}`;
+      const isVideo = /\.mp4$/i.test(f);
+      const poster = isVideo && files.includes(f.replace(/\.mp4$/i, '-poster.jpg')) ? src.replace(/\.mp4$/i, '-poster.jpg') : null;
+      out.push({ src, project: dir, mtime: fs.statSync(path.join(abs, f)).mtimeMs, ...(isVideo ? { type: 'video', poster } : {}) });
+    }
+  }
+  return out.sort((a, b) => b.mtime - a.mtime).map(({ mtime, ...u }) => u);
+}
+
+// Put an existing upload in a media slot: { target, src }
+async function pickMedia(req) {
+  const { target, src } = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8'));
+  const item = listUploads().find(u => u.src === src);
+  if (!item) throw new Error('That file isn’t in the uploads');
+  const { file, keys } = parseTarget(target);
+  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { list, key } = resolveMediaSlot(data, keys);
+  const prev = list[key] || {};
+  if (Array.isArray(list)) while (list.length < key) list.push(null);
+  list[key] = { ...(item.type ? { type: 'video', src: item.src, ...(item.poster ? { poster: item.poster } : {}) } : { src: item.src }), alt: prev.alt || '' };
+  writeJSON(file, data);
+  cleanupUploads([prev.src, prev.poster]);
+  build();
+  return list[key];
 }
 
 async function publish() {
@@ -496,9 +556,11 @@ const server = http.createServer(async (req, res) => {
       if (url.pathname === '/__api/media') return send(res, 200, await saveMedia(req, url));
       if (url.pathname === '/__api/poster') return send(res, 200, await savePoster(req, url));
       if (url.pathname === '/__api/node') return send(res, 200, await saveNode(req));
+      if (url.pathname === '/__api/media-pick') return send(res, 200, await pickMedia(req));
       if (url.pathname === '/__api/publish') return send(res, 200, await publish());
       return send(res, 404, { error: 'Unknown endpoint' });
     }
+    if (url.pathname === '/__api/uploads') return send(res, 200, listUploads());
     const page = renderRoute(url.pathname);
     if (page === 'redirect') { res.writeHead(301, { Location: '/projects/' }); return res.end(); }
     if (page === null) return send(res, 404, 'No such project', 'text/plain');

@@ -294,6 +294,14 @@
       max: ci('<path d="M1.5 2v8M10.5 2v8M3.5 6h5"/>'),
       gap: ci('<path d="M2 2v8M10 2v8M4.5 6h3"/>'),
       width: ci('<path d="M1.5 6h9M3.5 4l-2 2 2 2M8.5 4l2 2-2 2"/>'),
+      shape: ci('<rect x="1" y="3.5" width="10" height="5" rx="2.5"/>'),
+      color: ci('<circle cx="6" cy="6" r="4.5"/><path d="M6 1.5v9" />'),
+      size: ci('<path d="M2 10.5L5 2h1l3 8.5M3.2 7.5h4.6"/>'),
+      textAlign: ci('<path d="M1.5 3h9M1.5 6h6M1.5 9h9"/>'),
+      pattern: ci('<rect x="1" y="4" width="4.5" height="4" rx="1"/><rect x="6.5" y="4" width="4.5" height="4" rx="1"/>'),
+      priority: ci('<rect x="1" y="3.5" width="10" height="5" rx="1.5"/>'),
+      radius: ci('<path d="M2 10.5V6a4 4 0 014-4h4.5"/>'),
+      source: ci('<rect x="1.5" y="2" width="9" height="8" rx="1"/><path d="M1.5 8l3-3 3 3M7 6.5l1.5-1.5 2 2"/>'),
       variant: ci('<rect x="1.5" y="1.5" width="4" height="4"/><rect x="6.5" y="1.5" width="4" height="4"/><rect x="1.5" y="6.5" width="4" height="4"/><rect x="6.5" y="6.5" width="4" height="4"/>'),
     };
     const nodes = el => [...el.children].filter(c => c.dataset && c.dataset.node);
@@ -342,14 +350,14 @@
     let menuOwner = null;
     function closeMenu() {
       menuEl.hidden = true;
-      if (menuOwner) menuOwner.closest('[data-kind]').classList.remove('is-editing');
+      if (menuOwner) ownerOf(menuOwner).classList.remove('is-editing');
       menuOwner = null;
     }
     function openMenu(chip, title, options, picked, onPick) {
       if (menuOwner === chip) { closeMenu(); return; }
       closeMenu();
       menuOwner = chip;
-      chip.closest('[data-kind]').classList.add('is-editing');
+      ownerOf(chip).classList.add('is-editing');
       menuEl.innerHTML = `<p class="sc-menu__name">${title}</p>` + options.map((label, i) =>
         `<button type="button" role="menuitemradio" aria-checked="${i === picked}" class="sc-menu__opt" data-i="${i}">${label}</button>`).join('');
       menuEl.querySelectorAll('.sc-menu__opt').forEach(b => b.addEventListener('click', () => {
@@ -386,15 +394,26 @@
     // ---- hover chrome (Figma: Doc · Structural Rule): a dashed outline, the
     // level's name on the top-left edge and its control chips on the top-right edge.
     // Outlines and names show for every hovered level; chips only for the innermost.
-    function chrome(el, name, items) {
+    // Blocks (text, media, buttons) get theirs in a floating box over the block
+    // instead: chips inside editable text would become part of the text, and
+    // media frames clip anything outside them.
+    const ownerOf = chip => chip.closest('.sc-tb').scOwner;
+    function chrome(el, name, items, { float } = {}) {
+      let host = el;
+      if (float) {
+        host = el.scFloat = document.createElement('div');
+        host.className = 'sc-float';
+        document.body.appendChild(host);
+      }
       const tag = document.createElement('span');
       tag.className = 'sc-name';
       tag.textContent = name;
-      el.appendChild(tag);
+      host.appendChild(tag);
       const tb = document.createElement('div');
       tb.className = 'sc-tb';
       tb.setAttribute('role', 'toolbar');
       tb.setAttribute('aria-label', `${name} controls`);
+      tb.scOwner = el;
       for (const it of items) {
         const b = document.createElement('button');
         b.type = 'button';
@@ -406,7 +425,11 @@
         b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); it.run(b); });
         tb.appendChild(b);
       }
-      el.appendChild(tb);
+      host.appendChild(tb);
+    }
+    function placeFloat(el) {
+      const r = el.getBoundingClientRect();
+      Object.assign(el.scFloat.style, { left: `${r.left + scrollX}px`, top: `${r.top + scrollY}px`, width: `${r.width}px`, height: `${r.height}px` });
     }
     // Which levels are "hovered": the node under the pointer and its ancestors.
     // Tracked here rather than with :hover so the chrome holds still while the
@@ -417,8 +440,11 @@
       const chain = [];
       for (let n = target && target.closest('[data-kind]'); n; n = n.parentElement && n.parentElement.closest('[data-kind]')) chain.unshift(n);
       if (chain.length === lit.length && chain.every((n, i) => n === lit[i])) return;
-      lit.forEach(n => n.classList.remove('is-lit'));
-      chain.forEach(n => n.classList.add('is-lit'));
+      lit.forEach(n => { n.classList.remove('is-lit'); if (n.scFloat) n.scFloat.classList.remove('is-lit', 'is-outer'); });
+      chain.forEach((n, i) => {
+        n.classList.add('is-lit');
+        if (n.scFloat) { placeFloat(n); n.scFloat.classList.add('is-lit'); n.scFloat.classList.toggle('is-outer', i < chain.length - 1); }
+      });
       lit = chain;
       untangle();
     }
@@ -433,7 +459,7 @@
     function untangle() {
       const placed = [];
       for (const el of lit) {
-        for (const part of el.querySelectorAll(':scope > .sc-name, :scope > .sc-tb')) {
+        for (const part of (el.scFloat || el).querySelectorAll(':scope > .sc-name, :scope > .sc-tb')) {
           part.style.translate = '';
           const r = part.getBoundingClientRect();
           const isTag = part.classList.contains('sc-name');
@@ -548,6 +574,60 @@
       );
       chrome(inst, inst.dataset.component, items);
     });
+
+    // ---- blocks inside components: their own controls (data.blockControls)
+    document.querySelectorAll('[data-kind="block"]').forEach(el => {
+      const type = el.dataset.blockType;
+      const current = JSON.parse(el.dataset.settings || '{}');
+      const items = (data.blockControls[type] || []).map(control => {
+        const now = current[control.key] ?? null;
+        const found = control.options.findIndex(o => o.value === now || (o.also || []).includes(now));
+        return { icon: CHIP[control.key] || CHIP.variant, text: control.label, title: control.label,
+          run: chip => openMenu(chip, control.label, control.options.map(o => o.label), found, i =>
+            nodeAction({ action: 'block', path: el.dataset.instance, block: el.dataset.block, key: control.key, value: control.options[i].value },
+              `Changing ${control.label.toLowerCase()}…`)) };
+      });
+      if (type === 'media' && el.hasAttribute('data-edit-media')) {
+        items.unshift({ icon: CHIP.source, text: 'Source', title: 'Source',
+          run: chip => openMenu(chip, 'Source', ['Upload…', 'Choose from uploads…'], -1, i => {
+            if (i === 0) { pickerSlot = el; picker.click(); } else openLibrary(el);
+          }) });
+      }
+      chrome(el, data.blockNames[type] || type, items, { float: true });
+    });
+
+    // ---- uploads library: put media that's already on the site into a slot
+    const libraryEl = document.createElement('dialog');
+    libraryEl.className = 'sc-library';
+    libraryEl.innerHTML = `<div class="sc-library__head"><p class="sc-library__title">Choose from uploads</p>
+      <button type="button" class="sc-poster__btn" data-act="close">Cancel</button></div><div class="sc-library__grid"></div>`;
+    document.body.appendChild(libraryEl);
+    libraryEl.querySelector('[data-act="close"]').addEventListener('click', () => libraryEl.close());
+    async function openLibrary(slot) {
+      const grid = libraryEl.querySelector('.sc-library__grid');
+      grid.innerHTML = '<p class="sc-library__empty">Loading…</p>';
+      libraryEl.showModal();
+      const items = await fetch('/__api/uploads').then(r => r.json()).catch(() => []);
+      if (!items.length) { grid.innerHTML = '<p class="sc-library__empty">Nothing uploaded yet.</p>'; return; }
+      grid.innerHTML = '';
+      for (const it of items) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'sc-library__item';
+        b.title = `${it.project} — ${it.src.split('/').pop()}`;
+        b.innerHTML = `<img src="/${it.poster || it.src}" alt="" loading="lazy">${it.type === 'video' ? '<span class="sc-library__badge">Video</span>' : ''}`;
+        b.addEventListener('click', async () => {
+          libraryEl.close();
+          start('Placing media…');
+          try {
+            await api('/__api/media-pick', { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: slot.dataset.editMedia, src: it.src }) });
+            sessionStorage.setItem('sc-scroll', String(window.scrollY));
+            location.reload();
+          } catch (err) { done(err.message); }
+        });
+        grid.appendChild(b);
+      }
+    }
   }
 
   // ------------------------------------------------------------ publish

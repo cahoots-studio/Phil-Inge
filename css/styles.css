@@ -622,12 +622,14 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 }
 .sc-section { position: relative; }
 
-/* Project header scroll (js/top.js): the header pins while the cover grows
-   to 16:9 and rides up over the title block, then the page scrolls on */
+/* Project header (js/top.js): the cover fills the rest of the first screen;
+   on the first scroll the header pins while the cover grows up to 16:9 from its
+   bottom edge, over the title block, then the page scrolls on */
+.is-top-fill .sc-component > .sc-media { z-index: 1; aspect-ratio: auto !important; }
 .is-top-run { box-sizing: border-box; }
 .is-top-run > .sc-container { position: sticky; }
-.is-top-run .sc-component > .sc-media { z-index: 1; aspect-ratio: auto !important; will-change: height, margin-top; }
-.is-top-run .sc-component > .sc-media ~ *, .is-top-run .sc-component > :not(.sc-media) { will-change: opacity; }
+.is-top-run .sc-component > .sc-media { will-change: height, margin-top; }
+.is-top-run .sc-component > :not(.sc-media) { will-change: opacity; }
 
 /* Images never size their frame: the frame comes from aspect / fill */
 .sc-media :is(img, video) {

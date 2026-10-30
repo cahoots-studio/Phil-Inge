@@ -1,9 +1,11 @@
 // Project header (Figma: Top / Portfolio → interaction annotation on Project Tile).
-// On the first scroll the header holds still while the cover grows from its wide
-// strip to 16:9 and slides up over the title and info block, which fade out.
-// Once the cover is full height the page scrolls on as normal.
-// Skipped for reduced motion, in the editor, and where the cover is already
-// 16:9 (narrow screens).
+// The cover starts as a wide strip that fills the rest of the first screen, down
+// to the page gutter (Padding/Section/Global) from the bottom edge. On the first
+// scroll the header holds still while the cover grows to 16:9 — its bottom edge
+// stays put, so it rises over the title and info block, which fade out. Once the
+// cover is full size the page scrolls on as normal.
+// Skipped for reduced motion, in the editor, and on narrow screens (the cover is
+// 16:9 there already).
 (function () {
   var section = document.querySelector('section[data-top="portfolio"]');
   if (!section || document.getElementById('sc-edit-data')) return;
@@ -13,12 +15,13 @@
   var info = media && media.previousElementSibling;
   if (!inner || !media || !info) return;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var narrow = window.matchMedia('(max-width: 900px)'); // matches the 16:9 cover rule in styles.css
 
   var run = null; // measurements for the current layout, or null when off
 
   function reset() {
     section.style.height = '';
-    section.classList.remove('is-top-run');
+    section.classList.remove('is-top-run', 'is-top-fill');
     inner.style.top = '';
     media.style.height = '';
     media.style.marginTop = '';
@@ -28,21 +31,22 @@
   function measure() {
     reset();
     run = null;
-    if (reduce.matches) return;
+    if (reduce.matches || narrow.matches) return;
     var m = media.getBoundingClientRect();
-    var startH = m.height;
+    var gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pad-section-global')) || 0;
+    // Fill the rest of the first screen (never shorter than the designed strip)
+    var startH = Math.max(m.height, window.innerHeight - (m.top + window.scrollY) - gutter);
     var endH = m.width * 9 / 16;
-    if (endH - startH < 8) return;
-    // How far the cover's top travels to reach the top of the info block
-    var overlap = m.top - info.getBoundingClientRect().top;
+    section.classList.add('is-top-fill');
+    media.style.height = startH + 'px';
+    var grow = endH - startH;
+    if (grow < 8) return; // already 16:9 or taller: just fill
+    // The cover grows upward (height up, top up by the same amount), so the
+    // header's height doesn't change while it's pinned
     var cs = getComputedStyle(section);
     var padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-    var h0 = inner.offsetHeight;
-    var h1 = h0 + (endH - startH) - overlap;
-    var distance = endH - startH + overlap; // scroll length ≈ how far things move
-    run = { startH: startH, endH: endH, overlap: overlap, distance: distance };
-    // Fixed section height: the header pins for `distance`, then scrolls away
-    section.style.height = (padY + Math.max(h0, h1) + distance) + 'px';
+    run = { startH: startH, grow: grow };
+    section.style.height = (padY + inner.offsetHeight + grow) + 'px';
     inner.style.top = (inner.getBoundingClientRect().top + window.scrollY) + 'px';
     section.classList.add('is-top-run');
     update();
@@ -50,9 +54,9 @@
 
   function update() {
     if (!run) return;
-    var p = Math.min(1, Math.max(0, window.scrollY / run.distance));
-    media.style.height = (run.startH + (run.endH - run.startH) * p) + 'px';
-    media.style.marginTop = (-run.overlap * p) + 'px';
+    var p = Math.min(1, Math.max(0, window.scrollY / run.grow));
+    media.style.height = (run.startH + run.grow * p) + 'px';
+    media.style.marginTop = (-run.grow * p) + 'px';
     info.style.opacity = String(1 - p);
   }
 

@@ -27,9 +27,9 @@
   "projectOrder": [
     "huck-black-box",
     "reckon",
+    "tiny-hawk",
     "ante",
     "waypoint",
-    "glca",
-    "tiny-hawk"
+    "glca"
   ]
 }

@@ -1,11 +1,11 @@
 {
   "home": {
-    "title": "Phil Inge — Helps people build brands",
+    "title": "Phil Inge \u2014 Helps people build brands",
     "description": "Phil Inge helps people build brands.",
     "headline": "Phil Inge helps people build brands;"
   },
   "projectsPage": {
-    "title": "Projects — Phil Inge",
+    "title": "Projects \u2014 Phil Inge",
     "description": "Selected brand and digital design projects by Phil Inge.",
     "heading": "Projects",
     "tags": [
@@ -26,10 +26,10 @@
   },
   "projectOrder": [
     "huck-black-box",
+    "reckon",
     "ante",
     "waypoint",
     "glca",
-    "tiny-hawk",
-    "reckon"
+    "tiny-hawk"
   ]
 }

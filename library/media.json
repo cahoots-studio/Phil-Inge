@@ -1,0 +1,202 @@
+{
+  "name": "Media",
+  "description": "One image or video at a set ratio (Figma: Primitives \u2192 Media). Free has no ratio of its own: it fills the height it's given (e.g. beside a 1:1 in a row), or takes a ratio from the instance's media.0 block setting.",
+  "props": {
+    "Ratio": [
+      "16:9",
+      "3:2",
+      "4:3",
+      "5:4",
+      "1:1",
+      "Free",
+      "4:5",
+      "3:4",
+      "2:3",
+      "9:16",
+      "21:9",
+      "9:21"
+    ]
+  },
+  "variants": [
+    {
+      "props": {
+        "Ratio": "16:9"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "16/9"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "3:2"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "3/2"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "4:3"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "4/3"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "5:4"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "5/4"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "1:1"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "1/1"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "Free"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "height": "fill"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "4:5"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "4/5"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "3:4"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "3/4"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "2:3"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "2/3"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "9:16"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "9/16"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "21:9"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "21/9"
+          }
+        ]
+      }
+    },
+    {
+      "props": {
+        "Ratio": "9:21"
+      },
+      "tree": {
+        "type": "component",
+        "children": [
+          {
+            "type": "media",
+            "slot": 0,
+            "aspect": "9/21"
+          }
+        ]
+      }
+    }
+  ]
+}

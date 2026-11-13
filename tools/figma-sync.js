@@ -167,7 +167,18 @@ function compiler(doc, data, warnings) {
     return o;
   }
 
-  function instance(n, p, extra = {}) {
+  // Media sizes in px: a Figma Media instance doesn't keep its ratio when resized,
+  // so its size comes from the width it gets (and, for Free, the row's height or
+  // the instance's media.0 aspect setting)
+  const ratio = r => { const m = /^(\d+(?:\.\d+)?)[:/](\d+(?:\.\d+)?)$/.exec(r || ''); return m ? m[1] / m[2] : null; };
+  function mediaSize(n, avail, rowH) {
+    if (n.component !== 'Media' || !avail) return {};
+    const own = ratio(n.variant && n.variant.Ratio) || ratio(((n.blocks || {})['media.0'] || {}).aspect);
+    const h = own ? avail / own : rowH;
+    return h ? { w: Math.round(avail * 1000) / 1000, h: Math.round(h * 1000) / 1000 } : {};
+  }
+
+  function instance(n, p, extra = {}, avail, rowH) {
     const def = lib[n.component];
     if (!def) throw new Error(`Unknown component "${n.component}" in ${doc}`);
     const variant = { ...findVariant(def, n.variant).props };
@@ -175,12 +186,23 @@ function compiler(doc, data, warnings) {
       warnings.push(`${n.component} has no Figma component — built as frames`);
       return node({ ...findVariant(def, n.variant).tree, type: 'container' }, p, { ...n, path: p });
     }
-    return { t: 'I', set: n.component, v: variant, n: n.component, w: 'fill', o: overrides(def, { ...n, path: p }), ...extra };
+    return { t: 'I', set: n.component, v: variant, n: n.component, w: 'fill', o: overrides(def, { ...n, path: p }), ...mediaSize(n, avail, rowH), ...extra };
   }
 
-  function node(n, p, inst) {
+  // Widths each child gets in a row: fixed sizes first, the rest shared by fill weight
+  function rowWidths(kids, avail, gap) {
+    const free = avail - gap * Math.max(0, kids.length - 1);
+    const fixed = kids.map(k => { const v = k.width && !/^(fill|hug)/.test(k.width) ? tok(k.width) : null; return v && (v.px ?? v); });
+    const weights = kids.map((k, i) => fixed[i] != null ? 0 : (/^fill/.test(k.width || 'fill') ? Number(String(k.width || '').split(/\s+/)[1]) || 1 : 0));
+    const left = free - fixed.reduce((a, v) => a + (v || 0), 0);
+    const total = weights.reduce((a, v) => a + v, 0) || 1;
+    return kids.map((k, i) => fixed[i] ?? (weights[i] ? left * weights[i] / total : null));
+  }
+  const px = v => (v && typeof v === 'object' ? v.px : v) || 0;
+
+  function node(n, p, inst, avail = FIGMA.width, rowH) {
     switch (n.type) {
-      case 'instance': return instance(n, p);
+      case 'instance': return instance(n, p, {}, avail, rowH);
       case 'section': case 'container': case 'column': case 'component': {
         if (!inst && !hasInstance(n)) return null;
         const first = (n.children || []).find(hasInstance);
@@ -188,7 +210,19 @@ function compiler(doc, data, warnings) {
           ? `Section${(() => { let f = n; while (f && f.type !== 'instance') f = (f.children || []).find(hasInstance); return f ? ' / ' + f.component : ''; })()}`
           : n.type[0].toUpperCase() + n.type.slice(1);
         const row = n.direction === 'row';
-        const kids = (n.children || []).map((c, i) => node(c, `${p}.children.${i}`, inst)).filter(Boolean);
+        const pd = pad(n.padding);
+        let inner = avail - (pd ? px(pd.l) + px(pd.r) : 0);
+        const mx = tok(n.max) || tok(n.maxWidth);
+        if (mx && px(mx)) inner = Math.min(inner, px(mx));
+        const list = n.children || [];
+        let widths = list.map(() => inner);
+        let height;
+        if (row) {
+          widths = rowWidths(list, inner, px(tok(n.gap)));
+          // A row's height comes from children with a ratio; Free media match it
+          height = Math.max(0, ...list.map((c, i) => mediaSize(c.type === 'instance' ? c : {}, widths[i]).h || 0)) || undefined;
+        }
+        const kids = list.map((c, i) => node(c, `${p}.children.${i}`, inst, widths[i] || inner, height)).filter(Boolean);
         const out = {
           t: 'F', n: name, d: row ? 'H' : 'V', gap: tok(n.gap), pad: pad(n.padding),
           w: dim(n.width, 'fill'), h: dim(n.height), max: tok(n.max) || tok(n.maxWidth) || undefined,

@@ -619,13 +619,17 @@ function renderNode(n, env, parentDir, depth) {
     case 'instance': {
       const def = env.lib[n.component];
       if (!def) throw new Error(`Unknown component "${n.component}" in ${env.doc}`);
-      const { tree } = findVariant(def, n.variant);
+      let { tree } = findVariant(def, n.variant);
+      // An instance can size itself in its parent (e.g. "fill 2" in a row)
+      if (n.width) tree = { ...tree, width: n.width };
       const html = renderNode(tree, { ...env, instance: { content: n.content || {}, blocks: n.blocks || {}, path: env.path, bind: n.bind } }, parentDir, depth);
       const attrs = editAttrs(n, env);
       return attrs ? html.replace(/^(\s*<[a-z0-9]+)/, `$1${attrs}`) : html;
     }
     case 'media': {
-      // Ratio comes from `aspect` ("16/9"); "Free" = no aspect, sized by fill/fixed
+      // Ratio comes from `aspect` ("16/9"); "Free" = no aspect, sized by fill/fixed.
+      // A ratio set on a Free slot (instance setting) wins over filling the height.
+      if (n.aspect && /^fill/.test(n.height || '')) n = { ...n, height: undefined };
       let m, target;
       const b = bound(env, `media.${n.slot}`);
       if (b) {

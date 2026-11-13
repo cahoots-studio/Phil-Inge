@@ -1,0 +1,168 @@
+{
+  "name": "Exploded View",
+  "description": "A stacked figure that comes apart into its pieces, each with its own explainer (Reckon: the mark). Stage 1: the stacked figure fades in with an intro. On the first scroll the section holds still while the pieces separate and each piece's text replaces the intro; hovering a piece or its text enlarges the piece 10%. Media slots 0\u20132 are the pieces, top to bottom (bare, so cut-out SVGs sit on the page). js/explode.js; static on phones, in the editor and for reduced motion.",
+  "props": {},
+  "variants": [
+    {
+      "props": {},
+      "tree": {
+        "type": "component",
+        "direction": "row",
+        "gap": "$gap-huge",
+        "align": "stretch",
+        "mobile": "stack",
+        "hook": "explode",
+        "children": [
+          {
+            "type": "column",
+            "hook": "explode-figure",
+            "width": "fill 1",
+            "align": "center",
+            "gap": "$gap-medium",
+            "children": [
+              {
+                "type": "column",
+                "hook": "explode-stack",
+                "align": "center",
+                "children": [
+                  {
+                    "type": "media",
+                    "slot": 0,
+                    "bare": true,
+                    "aspect": "395.8/395.9",
+                    "width": "60.47%",
+                    "hook": "part-1"
+                  },
+                  {
+                    "type": "media",
+                    "slot": 1,
+                    "bare": true,
+                    "aspect": "654.6/454.4",
+                    "width": "100%",
+                    "hook": "part-2"
+                  },
+                  {
+                    "type": "media",
+                    "slot": 2,
+                    "bare": true,
+                    "aspect": "557.6/302.9",
+                    "width": "85.18%",
+                    "hook": "part-3"
+                  }
+                ]
+              },
+              {
+                "type": "label",
+                "field": "caption",
+                "default": "One colour, flat. Faces turned from the light are solid."
+              }
+            ]
+          },
+          {
+            "type": "column",
+            "hook": "explode-copy",
+            "width": "fill 1",
+            "children": [
+              {
+                "type": "column",
+                "hook": "explode-intro",
+                "gap": "$gap-medium",
+                "children": [
+                  {
+                    "type": "label",
+                    "field": "eyebrow",
+                    "default": "Mark"
+                  },
+                  {
+                    "type": "headline",
+                    "size": "Large",
+                    "field": "headline",
+                    "default": "Headline"
+                  },
+                  {
+                    "type": "text",
+                    "size": "Small",
+                    "field": "text",
+                    "default": "A short paragraph."
+                  }
+                ]
+              },
+              {
+                "type": "column",
+                "hook": "part-1",
+                "gap": "$gap-tiny",
+                "children": [
+                  {
+                    "type": "label",
+                    "field": "part1Label",
+                    "default": "Top"
+                  },
+                  {
+                    "type": "headline",
+                    "size": "Small",
+                    "field": "part1Title",
+                    "default": "Part one"
+                  },
+                  {
+                    "type": "text",
+                    "size": "Small",
+                    "field": "part1Text",
+                    "default": "What the top piece means."
+                  }
+                ]
+              },
+              {
+                "type": "column",
+                "hook": "part-2",
+                "gap": "$gap-tiny",
+                "children": [
+                  {
+                    "type": "label",
+                    "field": "part2Label",
+                    "default": "Middle"
+                  },
+                  {
+                    "type": "headline",
+                    "size": "Small",
+                    "field": "part2Title",
+                    "default": "Part two"
+                  },
+                  {
+                    "type": "text",
+                    "size": "Small",
+                    "field": "part2Text",
+                    "default": "What the middle piece means."
+                  }
+                ]
+              },
+              {
+                "type": "column",
+                "hook": "part-3",
+                "gap": "$gap-tiny",
+                "children": [
+                  {
+                    "type": "label",
+                    "field": "part3Label",
+                    "default": "Base"
+                  },
+                  {
+                    "type": "headline",
+                    "size": "Small",
+                    "field": "part3Title",
+                    "default": "Part three"
+                  },
+                  {
+                    "type": "text",
+                    "size": "Small",
+                    "field": "part3Text",
+                    "default": "What the base means."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

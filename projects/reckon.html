@@ -123,16 +123,37 @@
 
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s2-1.png" alt="" loading="lazy"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
-      <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s3-1.png" alt="" loading="lazy"></div>
+        <div class="sc-component" data-dir="row" data-m="stack" data-hook="explode" style="flex-direction: row; gap: var(--gap-huge); align-items: stretch">
+          <div class="sc-column" data-hook="explode-figure" style="gap: var(--gap-medium); align-items: center; flex: 1 1 0">
+            <div class="sc-column" data-hook="explode-stack" style="align-items: center">
+              <div class="media sc-media sc-media--bare" data-hook="part-1" style="aspect-ratio: 395.8 / 395.9; width: 60.47%"><img src="../assets/uploads/reckon/mark-sphere.svg" alt="" loading="lazy"></div>
+              <div class="media sc-media sc-media--bare" data-hook="part-2" style="aspect-ratio: 654.6 / 454.4; width: 100%"><img src="../assets/uploads/reckon/mark-cube.svg" alt="" loading="lazy"></div>
+              <div class="media sc-media sc-media--bare" data-hook="part-3" style="aspect-ratio: 557.6 / 302.9; width: 85.18%"><img src="../assets/uploads/reckon/mark-cone.svg" alt="" loading="lazy"></div>
+            </div>
+            <span class="sc-label">One colour, flat. Faces turned from the light are solid.</span>
+          </div>
+          <div class="sc-column" data-hook="explode-copy" style="flex: 1 1 0">
+            <div class="sc-column" data-hook="explode-intro" style="gap: var(--gap-medium)">
+              <span class="sc-label">Mark</span>
+              <h2 class="sc-headline sc-headline--large">An impossible balance</h2>
+              <p class="sc-text sc-text--small">Most of us were never taught how money works, and quietly assume everyone else was. So the bills, the balances and the what-ifs build into a low, constant hum of stress, and asking for help feels like admitting you’re behind. Reckon starts somewhere kinder: you don’t have to be good at money to keep it in balance.</p>
+            </div>
+            <div class="sc-column" data-hook="part-1" style="gap: var(--gap-tiny)">
+              <span class="sc-label">Sphere</span>
+              <h2 class="sc-headline sc-headline--small">What you’re protecting</h2>
+              <p class="sc-text sc-text--small">The nest egg: card paydown, savings, retirement. The largest form, carried on top.</p>
+            </div>
+            <div class="sc-column" data-hook="part-2" style="gap: var(--gap-tiny)">
+              <span class="sc-label">Cube</span>
+              <h2 class="sc-headline sc-headline--small">Your unit</h2>
+              <p class="sc-text sc-text--small">The fixed monthly needs, balanced on a single corner. The more cubic, the more stable.</p>
+            </div>
+            <div class="sc-column" data-hook="part-3" style="gap: var(--gap-tiny)">
+              <span class="sc-label">Cone</span>
+              <h2 class="sc-headline sc-headline--small">Automate the base</h2>
+              <p class="sc-text sc-text--small">Money flowing in and being directed: transfers and autopays on autopilot. A broad base whose tip carries everything.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -166,9 +187,12 @@
     </section>
 
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
-      <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 1488 / 485"><img src="../assets/uploads/reckon/s7-1.png" alt="" loading="lazy"></div>
+      <div class="sc-container" data-dir="row" data-m="stack" style="flex-direction: row; gap: var(--gap-media); width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
+        <div class="sc-component" style="flex: 1 1 0">
+          <div class="media sc-media" style="aspect-ratio: 1 / 1"><video src="../assets/uploads/reckon/s7-1-loop.mp4" poster="../assets/uploads/reckon/s7-1-loop-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></div>
+        </div>
+        <div class="sc-component" style="flex: 2 1 0">
+          <div class="media sc-media" style="flex: 1 1 0"><img src="../assets/uploads/reckon/s7-2-stages.png" alt="" loading="lazy"></div>
         </div>
       </div>
     </section>
@@ -312,5 +336,6 @@
   <script src="../js/contact.js" defer></script>
   <script src="../js/media.js" defer></script>
   <script src="../js/top.js" defer></script>
+  <script src="../js/explode.js" defer></script>
 </body>
 </html>

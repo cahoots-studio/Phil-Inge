@@ -61,48 +61,36 @@
           "children": [
             {
               "type": "instance",
-              "component": "Gallery",
-              "variant": {
-                "Layout": "Full"
-              },
+              "component": "Exploded View",
+              "variant": {},
               "content": {
                 "media": [
                   {
-                    "src": "assets/uploads/reckon/s2-1.png",
+                    "src": "assets/uploads/reckon/mark-sphere.svg",
                     "alt": ""
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "section",
-      "padding": {
-        "x": "$pad-section-global",
-        "y": "$pad-section-gallery"
-      },
-      "children": [
-        {
-          "type": "container",
-          "width": "fill",
-          "max": "$container-max",
-          "children": [
-            {
-              "type": "instance",
-              "component": "Gallery",
-              "variant": {
-                "Layout": "Full"
-              },
-              "content": {
-                "media": [
+                  },
                   {
-                    "src": "assets/uploads/reckon/s3-1.png",
+                    "src": "assets/uploads/reckon/mark-cube.svg",
+                    "alt": ""
+                  },
+                  {
+                    "src": "assets/uploads/reckon/mark-cone.svg",
                     "alt": ""
                   }
-                ]
+                ],
+                "eyebrow": "Mark",
+                "headline": "An impossible balance",
+                "text": "Most of us were never taught how money works, and quietly assume everyone else was. So the bills, the balances and the what-ifs build into a low, constant hum of stress, and asking for help feels like admitting you’re behind. Reckon starts somewhere kinder: you don’t have to be good at money to keep it in balance.",
+                "caption": "One colour, flat. Faces turned from the light are solid.",
+                "part1Label": "Sphere",
+                "part1Title": "What you’re protecting",
+                "part1Text": "The nest egg: card paydown, savings, retirement. The largest form, carried on top.",
+                "part2Label": "Cube",
+                "part2Title": "Your unit",
+                "part2Text": "The fixed monthly needs, balanced on a single corner. The more cubic, the more stable.",
+                "part3Label": "Cone",
+                "part3Title": "Automate the base",
+                "part3Text": "Money flowing in and being directed: transfers and autopays on autopilot. A broad base whose tip carries everything."
               }
             }
           ]
@@ -242,23 +230,40 @@
               "type": "instance",
               "component": "Media",
               "variant": {
-                "Ratio": "Free"
+                "Ratio": "1:1"
               },
+              "width": "fill 1",
               "content": {
                 "media": [
                   {
-                    "src": "assets/uploads/reckon/s7-1.png",
+                    "type": "video",
+                    "src": "assets/uploads/reckon/s7-1-loop.mp4",
+                    "poster": "assets/uploads/reckon/s7-1-loop-poster.jpg",
                     "alt": ""
                   }
                 ]
+              }
+            },
+            {
+              "type": "instance",
+              "component": "Media",
+              "variant": {
+                "Ratio": "Free"
               },
-              "blocks": {
-                "media.0": {
-                  "aspect": "1488/485"
-                }
+              "width": "fill 2",
+              "content": {
+                "media": [
+                  {
+                    "src": "assets/uploads/reckon/s7-2-stages.png",
+                    "alt": ""
+                  }
+                ]
               }
             }
-          ]
+          ],
+          "direction": "row",
+          "gap": "$gap-media",
+          "mobile": "stack"
         }
       ]
     },

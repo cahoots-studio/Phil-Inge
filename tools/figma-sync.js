@@ -38,6 +38,8 @@ const FIGMA = {
   sets: {
     Top: '2057:3995', Gallery: '2103:496', Media: '443:446', Headline: '443:369', Text: '443:382',
     Tag: '2021:748', Footer: '452:196', Navigation: '455:318', 'Project Tile': '2024:829',
+    // Portfolio specialty components (Style Guide → Portfolio), not core Supercomponent
+    'Exploded View': '2344:575',
   },
 };
 const MAX_BYTES = 10 * 1024 * 1024;  // upload_assets limit
@@ -159,7 +161,8 @@ function compiler(doc, data, warnings) {
         if (Array.isArray(value)) o.push({ k: 'tags', l: 'Tags', p, tags: value.map(t => ({ s: t.label, c: TAG[t.color] || 'Orange' })) });
       } else if (BLOCK_LAYER[n.type] && n.field) {
         const { value, path: p } = field(inst, n.field);
-        if (typeof value === 'string' && value) o.push({ k: 'text', l: BLOCK_LAYER[n.type], p, s: value, ...(n.case === 'upper' ? { u: 1 } : {}) });
+        // Layers named after the field win (components with several headlines, e.g. Exploded View)
+        if (typeof value === 'string' && value) o.push({ k: 'text', l: [n.field, BLOCK_LAYER[n.type]], p, s: value, ...(n.case === 'upper' ? { u: 1 } : {}) });
       }
       (n.children || []).forEach(walk);
     })(tree);

@@ -631,6 +631,58 @@ a.site-nav__heading:hover { text-decoration: underline; text-underline-offset: 3
 .is-top-run .sc-component > .sc-media { will-change: height, margin-top; }
 .is-top-run .sc-component > :not(.sc-media) { will-change: opacity; }
 
+/* Bare media: cut-out artwork (e.g. SVG shapes) sits on the page with no frame */
+.sc-media--bare { border: 0; border-radius: 0; background: none; overflow: visible; }
+.sc-media--bare :is(img, video) { object-fit: contain; }
+
+/* Exploded View (library/exploded-view.json, js/explode.js)
+   The figure's layout is always the separated one: pieces stacked top to bottom
+   with a gap. Stage 1 slides the top and bottom pieces in so they overlap into the
+   whole figure (translate doesn't move the layout, so the text can line up with
+   each piece). Distances are in cqi of the stack, so they scale with it:
+   gap 6cqi; stage-1 offsets from the Reckon mark (sphere +17.55, cone −17.37).
+   The stack is capped so the separated figure fits the screen (height ≈ 1.88 × width). */
+[data-hook="explode-stack"] {
+  position: relative;
+  container-type: inline-size;
+  width: min(100%, calc((100svh - 12rem) / 1.88));
+}
+[data-hook="explode-stack"] > [data-hook="part-2"] { margin-block: 6cqi; }
+[data-hook="explode-copy"] { gap: var(--gap-large); }
+
+.is-live [data-hook="explode-stack"] > * {
+  transition: translate 0.9s cubic-bezier(0.65, 0, 0.35, 1), scale 0.3s ease;
+}
+.is-live:not(.is-stage-2) [data-hook="explode-stack"] > [data-hook="part-1"] { translate: 0 17.55cqi; }
+.is-live:not(.is-stage-2) [data-hook="explode-stack"] > [data-hook="part-3"] { translate: 0 -17.37cqi; }
+.is-live [data-hook="explode-stack"] > .is-hot { scale: 1.1; }
+
+.is-live [data-hook="explode-stack"],
+.is-live [data-hook="explode-figure"] > .sc-label,
+.is-live [data-hook="explode-copy"] > * { transition: opacity 0.7s ease, translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.is-live:not(.is-stage-1, .is-stage-2) [data-hook="explode-stack"] { opacity: 0; }
+.is-live:not(.is-stage-2) [data-hook="explode-figure"] > .sc-label { opacity: 0; }
+
+/* Copy: the intro sits in the middle; each part lines up with its piece */
+.is-live [data-hook="explode-copy"] { position: relative; }
+.is-live [data-hook="explode-copy"] > * { position: absolute; left: 0; right: 0; }
+.is-live [data-hook="explode-intro"] { top: 50%; translate: 0 calc(-50% + 24px); opacity: 0; }
+.is-live.is-stage-1 [data-hook="explode-intro"] { translate: 0 -50%; opacity: 1; transition-delay: 0.25s; }
+.is-live.is-stage-2 [data-hook="explode-intro"] { translate: 0 calc(-50% - 24px); opacity: 0; }
+.is-live [data-hook="explode-copy"] > [data-hook^="part-"] { top: var(--part-y, 0); translate: 0 16px; opacity: 0; pointer-events: none; }
+.is-live.is-stage-2 [data-hook="explode-copy"] > [data-hook^="part-"] { translate: 0 0; opacity: 1; pointer-events: auto; }
+.is-live.is-stage-2 [data-hook="explode-copy"] > [data-hook="part-2"] { transition-delay: 0.1s; }
+.is-live.is-stage-2 [data-hook="explode-copy"] > [data-hook="part-3"] { transition-delay: 0.2s; }
+/* Leader line from the piece to its text */
+.is-live [data-hook="explode-copy"] > [data-hook^="part-"]::before {
+  content: '';
+  position: absolute;
+  top: var(--line-y, 0);
+  right: calc(100% + var(--gap-medium));
+  width: var(--lead, 0);
+  border-top: 1px solid var(--scheme-border);
+}
+
 /* Images never size their frame: the frame comes from aspect / fill */
 .sc-media :is(img, video) {
   position: absolute;

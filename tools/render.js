@@ -300,7 +300,8 @@ ${navList(navColumns(c, projects), 'site-footer', '        ')}
   <script src="${c.p}js/nav.js" defer></script>
   <script src="${c.p}js/contact.js" defer></script>
   <script src="${c.p}js/media.js" defer></script>
-  <script src="${c.p}js/top.js" defer></script>${c.edit ? `
+  <script src="${c.p}js/top.js" defer></script>
+  <script src="${c.p}js/explode.js" defer></script>${c.edit ? `
   <script src="/tools/editor/editor.js" defer></script>` : ''}
 </body>
 </html>
@@ -470,9 +471,10 @@ function nodeStyle(n, parentDir) {
   return css ? ` style="${esc(css)}"` : '';
 }
 
+// `hook` names a node for a component's own CSS/JS (e.g. Exploded View's parts)
 function nodeAttrs(n) {
   return (n.direction === 'row' ? ' data-dir="row"' : '') + (n.mobile ? ` data-m="${n.mobile === 'cols' ? 'cols' : 'stack'}"` : '')
-    + (n.mobileAspect ? ' data-m-aspect' : '');
+    + (n.mobileAspect ? ' data-m-aspect' : '') + (n.hook ? ` data-hook="${esc(n.hook)}"` : '');
 }
 
 // ---------------------------------------------------------------- blocks
@@ -642,7 +644,8 @@ function renderNode(n, env, parentDir, depth) {
         m = n.src !== undefined ? { src: n.src, alt: n.alt } : null;
         target = env.path;
       }
-      return `${pad}<div class="media sc-media"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}${blockAttrs(n, env)}>${img(env.c, m, { lazy: !b })}</div>`;
+      // bare: no frame (border, fill, corners), for cut-out artwork such as SVG shapes
+      return `${pad}<div class="media sc-media${n.bare ? ' sc-media--bare' : ''}"${nodeAttrs(n)}${nodeStyle(n, parentDir)}${env.c.m(env.doc, target, m)}${blockAttrs(n, env)}>${img(env.c, m, { lazy: !b })}</div>`;
     }
     case 'headline': {
       const { value, target } = blockText(n, env);

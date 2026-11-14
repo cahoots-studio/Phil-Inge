@@ -131,7 +131,15 @@ function projectHref(c, slug) {
 
 // ---------------------------------------------------------------- chrome
 
-function head({ title, description }, c) {
+// Typefaces a component brings with it (project artwork rebuilt live), loaded
+// only on pages that use it
+const EXTRA_FONTS = {
+  palette: 'family=Geist:wght@400&family=Geist+Mono:wght@400&family=Instrument+Serif',
+};
+
+function head({ title, description }, c, main = '') {
+  const extra = Object.entries(EXTRA_FONTS).filter(([hook]) => main.includes(`data-hook="${hook}"`))
+    .map(([, q]) => `\n  <link href="https://fonts.googleapis.com/css2?${q}&display=swap" rel="stylesheet">`).join('');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -141,7 +149,7 @@ function head({ title, description }, c) {
   <meta name="description" content="${esc(description)}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Inter:wght@400;600&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Inter:wght@400;600&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">${extra}
   <link rel="stylesheet" href="${c.p}css/tokens.css">
   <link rel="stylesheet" href="${c.p}css/styles.css">${c.edit ? `
   <link rel="stylesheet" href="/tools/editor/editor.css">` : ''}
@@ -309,7 +317,7 @@ ${navList(navColumns(c, projects), 'site-footer', '        ')}
 }
 
 function page(meta, c, projects, currentSlug, main) {
-  return `${head(meta, c)}
+  return `${head(meta, c, main)}
 <body>
 ${c.edit ? '' : MARKER + '\n'}
 ${header(c, projects, currentSlug)}
@@ -679,6 +687,25 @@ function renderNode(n, env, parentDir, depth) {
       else { list = n.tags; base = `${env.path}.tags`; }
       return `${pad}<ul class="tags sc-tags"${nodeStyle(n, parentDir)}>
 ${(list || []).map((t, i) => `${pad}  <li class="tag tag--${tagClass(t.color)}"${env.c.t(env.doc, `${base}.${i}.label`)}>${esc(t.label)}</li>`).join('\n')}
+${pad}</ul>`;
+    }
+    case 'swatches': {
+      // Colour chips: [{ name, hex, role }] (Figma: Colour Swatch). The chip's colour
+      // is its hex; project colours are one-off values, not site variables.
+      let list, base;
+      if (n.field && env.instance) { list = env.instance.content[n.field]; base = `${env.instance.path}.content.${n.field}`; }
+      else { list = n.swatches; base = `${env.path}.swatches`; }
+      const chip = h => (/^#[0-9a-f]{3,8}$/i.test(String(h || '').trim()) ? String(h).trim() : 'transparent');
+      const line = (cls, key, v) => `${pad}    <span class="sc-swatch__${cls}"${env.c.t(env.doc, key)}>${esc(v)}</span>`;
+      return `${pad}<ul class="sc-swatches sc-swatches--${n.theme === 'dark' ? 'dark' : 'light'}"${nodeAttrs(n)}${nodeStyle(n, parentDir)}>
+${(list || []).map((sw, i) => [
+    `${pad}  <li class="sc-swatch">`,
+    `${pad}    <span class="sc-swatch__chip" style="background: ${chip(sw.hex)}"></span>`,
+    line('name', `${base}.${i}.name`, sw.name || ''),
+    line('hex', `${base}.${i}.hex`, sw.hex || ''),
+    ...(sw.role ? [line('role', `${base}.${i}.role`, sw.role)] : []),
+    `${pad}  </li>`,
+  ].join('\n')).join('\n')}
 ${pad}</ul>`;
     }
     case 'button': {

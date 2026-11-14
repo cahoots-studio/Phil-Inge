@@ -40,6 +40,7 @@ const FIGMA = {
     Tag: '2021:748', Footer: '452:196', Navigation: '455:318', 'Project Tile': '2024:829',
     // Portfolio specialty components (Style Guide → Portfolio), not core Supercomponent
     'Exploded View': '2344:575',
+    'Colour Palette': '2349:562',
   },
 };
 const MAX_BYTES = 10 * 1024 * 1024;  // upload_assets limit
@@ -148,6 +149,9 @@ function compiler(doc, data, warnings) {
 
   // Overrides on a Figma instance, from the blocks in the library variant's tree
   function overrides(def, inst) {
+    // Components with their own sync (e.g. Colour Palette: nested swatch instances)
+    // hand the builder the instance's content as a whole
+    if (def.sync) return [{ k: def.sync, p: at(`${inst.path}.content`), d: inst.content || {} }];
     const { tree } = findVariant(def, inst.variant);
     const o = [];
     let actions = false;

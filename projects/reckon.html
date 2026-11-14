@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Inter:wght@400;600&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Geist+Mono:wght@400&family=Instrument+Serif&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../css/styles.css">
 </head>
@@ -115,8 +116,9 @@
 
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s1-1.png" alt="" loading="lazy"></div>
+        <div class="sc-component" data-dir="row" data-m="stack" style="flex-direction: row; gap: var(--gap-media)">
+          <div class="media sc-media" style="aspect-ratio: 4 / 5; flex: 1 1 0"><img src="../assets/uploads/reckon/s4-1.png" alt="" loading="lazy"></div>
+          <div class="media sc-media" style="flex: 1 1 0; align-self: stretch"><img src="../assets/uploads/reckon/s4-2.png" alt="" loading="lazy"></div>
         </div>
       </div>
     </section>
@@ -159,10 +161,20 @@
     </section>
 
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
+      <div class="sc-container" data-dir="row" data-m="stack" style="flex-direction: row; gap: var(--gap-media); width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
+        <div class="sc-component" style="flex: 1 1 0">
+          <div class="media sc-media" style="aspect-ratio: 1 / 1"><video src="../assets/uploads/reckon/s7-1-loop.mp4" poster="../assets/uploads/reckon/s7-1-loop-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></div>
+        </div>
+        <div class="sc-component" style="flex: 2 1 0">
+          <div class="media sc-media" style="flex: 1 1 0"><img src="../assets/uploads/reckon/s7-2-stages.png" alt="" loading="lazy"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component" data-dir="row" data-m="stack" style="flex-direction: row; gap: var(--gap-media)">
-          <div class="media sc-media" style="aspect-ratio: 4 / 5; flex: 1 1 0"><img src="../assets/uploads/reckon/s4-1.png" alt="" loading="lazy"></div>
-          <div class="media sc-media" style="flex: 1 1 0; align-self: stretch"><img src="../assets/uploads/reckon/s4-2.png" alt="" loading="lazy"></div>
+        <div class="sc-component">
+          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s6-1.jpg" alt="" loading="lazy"></div>
         </div>
       </div>
     </section>
@@ -181,25 +193,6 @@
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
         <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s6-1.jpg" alt="" loading="lazy"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
-      <div class="sc-container" data-dir="row" data-m="stack" style="flex-direction: row; gap: var(--gap-media); width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component" style="flex: 1 1 0">
-          <div class="media sc-media" style="aspect-ratio: 1 / 1"><video src="../assets/uploads/reckon/s7-1-loop.mp4" poster="../assets/uploads/reckon/s7-1-loop-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></div>
-        </div>
-        <div class="sc-component" style="flex: 2 1 0">
-          <div class="media sc-media" style="flex: 1 1 0"><img src="../assets/uploads/reckon/s7-2-stages.png" alt="" loading="lazy"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
-      <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component">
           <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s8-1.png" alt="" loading="lazy"></div>
         </div>
       </div>
@@ -208,15 +201,7 @@
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
         <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s9-1.jpg" alt="" loading="lazy"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
-      <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
-        <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s10-1.png" alt="" loading="lazy"></div>
+          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s12-1.jpg" alt="" loading="lazy"></div>
         </div>
       </div>
     </section>
@@ -231,8 +216,105 @@
 
     <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
       <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
+        <div class="sc-component" data-hook="palette">
+          <span class="sc-label">Colour</span>
+          <div class="sc-column" data-dir="row" data-m="stack" data-hook="palette-features" style="flex-direction: row">
+            <div class="sc-column" data-hook="palette-card-dark" style="flex: 1 1 0">
+              <div class="sc-column" data-hook="palette-copy">
+                <h2 class="sc-headline sc-headline--large">Ink</h2>
+                <span class="sc-label">#111111 · Top</span>
+                <p class="sc-text sc-text--small">Type, the mark, and the dark exceptions: launch, primary icon, onboarding.</p>
+              </div>
+              <div class="sc-column" data-hook="palette-tokens">
+                <span class="sc-label">Onboarding · Dark tokens</span>
+                <ul class="sc-swatches sc-swatches--dark">
+                  <li class="sc-swatch">
+                    <span class="sc-swatch__chip" style="background: #3A3B3E"></span>
+                    <span class="sc-swatch__name">Hairline</span>
+                    <span class="sc-swatch__hex">#3A3B3E</span>
+                  </li>
+                  <li class="sc-swatch">
+                    <span class="sc-swatch__chip" style="background: #5E636B"></span>
+                    <span class="sc-swatch__name">Border</span>
+                    <span class="sc-swatch__hex">#5E636B</span>
+                  </li>
+                  <li class="sc-swatch">
+                    <span class="sc-swatch__chip" style="background: #84878C"></span>
+                    <span class="sc-swatch__name">Muted · 5.3:1</span>
+                    <span class="sc-swatch__hex">#84878C</span>
+                  </li>
+                  <li class="sc-swatch">
+                    <span class="sc-swatch__chip" style="background: #F5F5F3"></span>
+                    <span class="sc-swatch__name">Text</span>
+                    <span class="sc-swatch__hex">#F5F5F3</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="sc-column" data-hook="palette-card-light" style="flex: 1 1 0">
+              <div class="sc-column" data-hook="palette-copy">
+                <h2 class="sc-headline sc-headline--large">Ledger</h2>
+                <span class="sc-label">#F5F5F3 · Ground</span>
+                <p class="sc-text sc-text--small">The page. Reckon is designed light and stays light in dark mode.</p>
+              </div>
+              <div class="sc-column" data-dir="row" data-hook="palette-ratio" style="flex-direction: row">
+                <p class="sc-text sc-text--small">17.3 : 1</p>
+                <span class="sc-label">Ink on off-white</span>
+              </div>
+            </div>
+          </div>
+          <ul class="sc-swatches sc-swatches--light" data-hook="palette-scale">
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #FFFFFF"></span>
+              <span class="sc-swatch__name">Lightest</span>
+              <span class="sc-swatch__hex">#FFFFFF</span>
+              <span class="sc-swatch__role">Cards</span>
+            </li>
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #F5F5F3"></span>
+              <span class="sc-swatch__name">Lighter</span>
+              <span class="sc-swatch__hex">#F5F5F3</span>
+              <span class="sc-swatch__role">Page</span>
+            </li>
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #E4E4E0"></span>
+              <span class="sc-swatch__name">Light</span>
+              <span class="sc-swatch__hex">#E4E4E0</span>
+              <span class="sc-swatch__role">Hairline</span>
+            </li>
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #84878C"></span>
+              <span class="sc-swatch__name">Neutral</span>
+              <span class="sc-swatch__hex">#84878C</span>
+              <span class="sc-swatch__role">Control border</span>
+            </li>
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #5E636B"></span>
+              <span class="sc-swatch__name">Dark</span>
+              <span class="sc-swatch__hex">#5E636B</span>
+              <span class="sc-swatch__role">Muted text</span>
+            </li>
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #3A3B3E"></span>
+              <span class="sc-swatch__name">Darker</span>
+              <span class="sc-swatch__hex">#3A3B3E</span>
+            </li>
+            <li class="sc-swatch">
+              <span class="sc-swatch__chip" style="background: #111111"></span>
+              <span class="sc-swatch__name">Darkest</span>
+              <span class="sc-swatch__hex">#111111</span>
+              <span class="sc-swatch__role">Ink</span>
+            </li>
+          </ul>
+          <span class="sc-label">Neutral scale · Bound to the Reckon library variables</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sc-section" style="padding: var(--pad-section-gallery) var(--pad-section-global) var(--pad-section-gallery)">
+      <div class="sc-container" style="width: 100%; max-width: var(--container-max); margin-inline: auto; align-self: stretch">
         <div class="sc-component">
-          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s12-1.jpg" alt="" loading="lazy"></div>
+          <div class="media sc-media" style="aspect-ratio: 16 / 9"><img src="../assets/uploads/reckon/s9-1.jpg" alt="" loading="lazy"></div>
         </div>
       </div>
     </section>

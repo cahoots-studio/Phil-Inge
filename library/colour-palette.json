@@ -1,0 +1,77 @@
+{
+  "name": "Colour Palette",
+  "description": "A project's colour slide, built live instead of baked (Reckon). Two hero cards — Dark carries a row of token swatches, Light carries a contrast ratio — over a scale of swatches, each { name, hex, role }. Every name, hex and note is editable text; chip colours come from the hex. Project colours are one-off values here, not site variables. Figma: Portfolio → Colour Palette (built from Colour Feature and Colour Swatch).",
+  "props": {},
+  "sync": "palette",
+  "variants": [
+    {
+      "props": {},
+      "tree": {
+        "type": "component",
+        "hook": "palette",
+        "children": [
+          { "type": "label", "field": "eyebrow", "default": "Colour" },
+          {
+            "type": "column",
+            "direction": "row",
+            "hook": "palette-features",
+            "mobile": "stack",
+            "children": [
+              {
+                "type": "column",
+                "hook": "palette-card-dark",
+                "width": "fill 1",
+                "children": [
+                  {
+                    "type": "column",
+                    "hook": "palette-copy",
+                    "children": [
+                      { "type": "headline", "size": "Large", "field": "darkTitle", "default": "Ink" },
+                      { "type": "label", "field": "darkMeta", "default": "#111111 · Top" },
+                      { "type": "text", "size": "Small", "field": "darkText", "default": "Where the dark colour is used." }
+                    ]
+                  },
+                  {
+                    "type": "column",
+                    "hook": "palette-tokens",
+                    "children": [
+                      { "type": "label", "field": "tokensLabel", "default": "Dark tokens" },
+                      { "type": "swatches", "field": "tokens", "theme": "dark" }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "column",
+                "hook": "palette-card-light",
+                "width": "fill 1",
+                "children": [
+                  {
+                    "type": "column",
+                    "hook": "palette-copy",
+                    "children": [
+                      { "type": "headline", "size": "Large", "field": "lightTitle", "default": "Off-white" },
+                      { "type": "label", "field": "lightMeta", "default": "#F5F5F3 · Ground" },
+                      { "type": "text", "size": "Small", "field": "lightText", "default": "Where the light colour is used." }
+                    ]
+                  },
+                  {
+                    "type": "column",
+                    "direction": "row",
+                    "hook": "palette-ratio",
+                    "children": [
+                      { "type": "text", "size": "Small", "field": "ratio", "default": "17.3 : 1" },
+                      { "type": "label", "field": "ratioLabel", "default": "Dark on light" }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { "type": "swatches", "field": "scale", "theme": "light", "hook": "palette-scale" },
+          { "type": "label", "field": "footnote", "default": "Neutral scale" }
+        ]
+      }
+    }
+  ]
+}

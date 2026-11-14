@@ -1027,3 +1027,95 @@ a.site-footer__heading { padding: 0; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Colour Palette (library/colour-palette.json; Figma: Portfolio → Colour Palette)
+   A project's colour slide, built live. Its colours and typefaces are the
+   project's own (one-off values), so they live here rather than in tokens.css.
+   Sizes follow the Figma component at its 1488px width. */
+[data-hook="palette"] {
+  --pal-ink: #111111;
+  --pal-ground: #F5F5F3;
+  --pal-line: #E4E4E0;
+  --pal-muted: #5E636B;
+  --pal-soft: #84878C;
+  gap: 32px;
+  padding: 44px 44px 48px;
+  background: var(--pal-ground);
+  border-radius: var(--radius-medium);
+  color: var(--pal-ink);
+}
+[data-hook="palette"] .sc-label,
+[data-hook="palette"] .sc-swatch__name,
+[data-hook="palette"] .sc-swatch__hex,
+[data-hook="palette"] .sc-swatch__role {
+  font: 400 13px/17px 'Geist Mono', ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: inherit;
+}
+[data-hook="palette"] > .sc-label:last-child { color: var(--pal-muted); }
+[data-hook="palette-features"] { gap: 21px; }
+[data-hook="palette-card-dark"],
+[data-hook="palette-card-light"] {
+  justify-content: space-between;
+  gap: 40px;
+  min-height: 420px;
+  padding: 32px;
+  border-radius: 16px;
+}
+[data-hook="palette-card-dark"] { background: var(--pal-ink); color: var(--pal-ground); }
+[data-hook="palette-card-light"] { background: var(--pal-ground); box-shadow: inset 0 0 0 1px var(--pal-line); }
+[data-hook="palette-copy"] { gap: 16px; }
+[data-hook="palette"] .sc-headline {
+  font: 400 56px/60px 'Instrument Serif', Georgia, serif;
+  letter-spacing: 0;
+  text-transform: none;
+  color: inherit;
+}
+[data-hook="palette-copy"] .sc-text {
+  max-width: 340px;
+  font: 400 17px/23px Geist, Inter, sans-serif;
+  color: inherit;
+}
+[data-hook="palette-tokens"] { gap: 14px; }
+[data-hook="palette-tokens"] > .sc-label { color: var(--pal-soft); font-size: 12px; line-height: 16px; }
+[data-hook="palette-ratio"] { justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+[data-hook="palette-ratio"] .sc-text {
+  font: 400 112px/104px 'Instrument Serif', Georgia, serif;
+  color: inherit;
+}
+[data-hook="palette-ratio"] .sc-label { color: var(--pal-muted); }
+
+.sc-swatches { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 13px; margin: 0; padding: 0; list-style: none; }
+.sc-swatches--dark { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sc-swatch { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sc-swatch__chip {
+  display: block;
+  aspect-ratio: 189 / 129;
+  margin-bottom: 11px;
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1px rgb(17 17 17 / 0.08);
+}
+.sc-swatches--dark .sc-swatch { gap: 10px; }
+.sc-swatches--dark .sc-swatch__chip { aspect-ratio: 139 / 71; margin-bottom: 2px; border-radius: 7px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.sc-swatches--dark .sc-swatch__name,
+.sc-swatches--dark .sc-swatch__hex { color: var(--pal-soft); font-size: 12px; line-height: 16px; }
+.sc-swatches--light .sc-swatch__hex,
+.sc-swatches--light .sc-swatch__role { color: var(--pal-muted); letter-spacing: 0.02em; }
+.sc-swatches--light .sc-swatch__role { text-transform: none; }
+
+@media (max-width: 1100px) {
+  [data-hook="palette"] .sc-headline { font-size: 44px; line-height: 48px; }
+  [data-hook="palette-ratio"] .sc-text { font-size: 84px; line-height: 80px; }
+}
+@media (max-width: 900px) {
+  [data-hook="palette"] { padding: 28px 24px 32px; gap: 24px; }
+  [data-hook="palette-card-dark"],
+  [data-hook="palette-card-light"] { min-height: 0; padding: 24px; }
+  .sc-swatches--light { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 20px; }
+}
+@media (max-width: 560px) {
+  .sc-swatches--light,
+  .sc-swatches--dark { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
+  [data-hook="palette-ratio"] .sc-text { font-size: 64px; line-height: 60px; }
+}

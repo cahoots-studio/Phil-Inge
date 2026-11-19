@@ -5,7 +5,7 @@ sync, token tools) lives in the [supercomponent](https://github.com/cahoots-stud
 repo and is installed as a dependency. This repo holds only what's Phil's: content,
 media, page templates (`site/`), its own components (`library/`), brand tokens and CSS.
 
-First time on a machine: `npm install` (needs access to the supercomponent repo).
+First time on a machine: `npm install` (needs access to the private supercomponent repo). The engine is an *optional* dependency so Netlify, which has no access, skips it and serves the pre-built pages.
 
 Page content lives in `/content` as JSON. The HTML in the site root and
 `/projects` is **generated** from it — don't hand-edit those files.

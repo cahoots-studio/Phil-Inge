@@ -9,7 +9,7 @@
     "figma": "sc figma",
     "new-project": "node site/new-project.js"
   },
-  "devDependencies": {
+  "optionalDependencies": {
     "supercomponent": "github:cahoots-studio/supercomponent#v0.4.0"
   }
 }

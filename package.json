@@ -1,0 +1,15 @@
+{
+  "name": "phil-inge",
+  "private": true,
+  "description": "philinge.com — a Supercomponent project",
+  "scripts": {
+    "build": "sc build",
+    "edit": "sc edit",
+    "tokens": "sc tokens",
+    "figma": "sc figma",
+    "new-project": "node site/new-project.js"
+  },
+  "devDependencies": {
+    "supercomponent": "github:cahoots-studio/supercomponent#v0.4.0"
+  }
+}

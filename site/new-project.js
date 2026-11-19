@@ -1,14 +1,15 @@
 // Creates content/projects/<slug>.json from the template and rebuilds.
-// Run: node tools/new-project.js "Project Name"
+// Run: npm run new-project -- "Project Name"
 
 const fs = require('fs');
 const path = require('path');
-const { CONTENT } = require('./render');
-const { build } = require('./build');
+const { config } = require('supercomponent/engine');
+const { build } = require('supercomponent/engine/build');
+const CONTENT = config.content;
 
 const title = process.argv.slice(2).join(' ').trim();
 if (!title) {
-  console.error('Usage: node tools/new-project.js "Project Name"');
+  console.error('Usage: npm run new-project -- "Project Name"');
   process.exit(1);
 }
 
